@@ -54,7 +54,7 @@ row before the </tbody></table> line.
 
 # Uber Go语言编码规范
 
- [Uber](https://www.uber.com/)是世界领先的生活出行服务提供商，也是Go语言的早期adopter，根据[Uber工程博客](https://eng.uber.com/)的内容，大致可以判断出Go语言在Uber内部扮演了十分重要的角色。Uber内部的Go语言工程实践也是硕果累累，有大量Go实现的内部工具被Uber开源到[github](https://github.com/uber-go)上，诸如被Gopher圈熟知的[zap](https://github.com/uber-go/zap)、[jaeger](https://github.com/jaegertracing/jaeger)等。2018年年末Uber将内部的[Go风格规范](https://github.com/uber-go/guide)开源到github，经过一年的积累和更新，该规范已经初具规模，并受到广大Gopher的关注。本文是该规范的中文版本，并”夹带“了部分笔者的点评，希望对国内Gopher有所帮助。
+ [Uber](https://www.uber.com/)是一家美国硅谷的科技公司，也是Go语言的早期adopter.其开源了很多golang项目，诸如被Gopher圈熟知的[zap](https://github.com/uber-go/zap)、[jaeger](https://github.com/jaegertracing/jaeger)等。2018年年末Uber将内部的[Go风格规范](https://github.com/uber-go/guide)开源到github，经过一年的积累和更新，该规范已经初具规模，并受到广大Gopher的关注。本文是该规范的中文版本.本版本会根据原版实时更新。当前更新版本(2019-10-13)(commit:603824f872091e4c8b3a655fa77495074b89ebc5)
 
 ## 目录
 
