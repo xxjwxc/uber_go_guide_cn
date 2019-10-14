@@ -91,18 +91,18 @@ row before the </tbody></table> line.
   - [本地变量声明](#本地变量声明)
   - [nil是一个有效的slice](#nil是一个有效的slice)
   - [小变量作用域](#小变量作用域)
-  - [避免裸参数](#避免裸参数)
+  - [避免参数语义不明确（Avoid Naked Parameters）](#避免参数语义不明确（Avoid-Naked-Parameters）)
   - [使用原始字符串字面值，避免转义](#使用原始字符串字面值，避免转义)
-  - [初始化结构体引用](#初始化结构体引用)
-  - [格式化字符串放在Printf外部](#格式化字符串放在Printf外部)
+  - [初始化Struct引用](#初始化Struct引用)
+  - [字符串 string format ](#字符串-string-format )
   - [命名Printf样式的函数](#命名Printf样式的函数)
-- [模式](#模式)
-  - [测试Tables](#测试Tables)
+- [编程模式](#编程模式)
+  - [表驱动测试](#表驱动测试)
   - [功能选项](#功能选项)
 
 ## 介绍
 
-样式(style)是支配我们代码的惯例。术语“样式”有点用词不当，因为这些约定涵盖的范围不限于由gofmt替我们处理的源文件格式。
+样式(style)是支配我们代码的惯例。术语`样式`有点用词不当，因为这些约定涵盖的范围不限于由gofmt替我们处理的源文件格式。
 
 本指南的目的是通过详细描述在Uber编写Go代码的注意事项来管理这种复杂性。这些规则的存在是为了使代码库易于管理，同时仍然允许工程师更有效地使用Go语言功能。
 
@@ -1586,7 +1586,7 @@ func f(list []int) {
 
 `nil` 是一个有效的长度为0的slice，这意味着,
 
-- 您不应明确返回长度为零的切片。返回`nil` 来代替。
+- 您不应明确返回长度为零的切片。应该返回`nil` 来代替。
 
   <table>
   <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1610,7 +1610,7 @@ func f(list []int) {
   </td></tr>
   </tbody></table>
 
-- 要检查切片是否为空，请始终使用`len(s) == 0`。不要检查 `nil`。
+- 要检查切片是否为空，请始终使用`len(s) == 0`。而非 `nil`。
 
   <table>
   <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1738,9 +1738,9 @@ return nil
 </td></tr>
 </tbody></table>
 
-### 避免裸参数
+### 避免参数语义不明确（Avoid Naked Parameters）
 
-函数调用中的裸参数可能会损害可读性。当参数名称的含义不明显时，请为参数添加C样式注释(`/* ... */`)
+函数调用中的`意义不明确的参数`可能会损害可读性。当参数名称的含义不明显时，请为参数添加C样式注释(`/* ... */`)
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1764,7 +1764,7 @@ printInfo("foo", true /* isLocal */, true /* done */)
 </td></tr>
 </tbody></table>
 
-更好的作法是，将裸`bool`类型替换为自定义类型，以获得更易读和类型安全的代码。将来，该参数不仅允许两个状态（true/false）。
+对于上面的示例代码，还有一种更好的处理方式是将上面的 `bool` 类型换成自定义类型。将来，该参数可以支持不仅仅局限于两个状态（true/false）。
 
 ```go
 type Region int
@@ -1787,7 +1787,9 @@ func printInfo(name string, region Region, status Status)
 
 ### 使用原始字符串字面值，避免转义
 
-Go支持[原始字符串字面值](https://golang.org/ref/spec#raw_string_lit)，可以跨越多行并包含引号。使用这些字符串可以避免更难阅读的手工转义的字符串。
+Go 支持使用[原始字符串字面值](https://golang.org/ref/spec#raw_string_lit)，也就是 " ` " 来表示原生字符串，在需要转义的场景下，我们应该尽量使用这种方案来替换。
+
+可以跨越多行并包含引号。使用这些字符串可以避免更难阅读的手工转义的字符串。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1807,7 +1809,7 @@ wantError := `unknown error:"test"`
 </td></tr>
 </tbody></table>
 
-### 初始化结构体引用
+### 初始化Struct引用
 
 在初始化结构引用时，请使用`&T{}`代替`new(T)`，以使其与结构体初始化一致。
 
@@ -1835,7 +1837,7 @@ sptr := &T{Name: "bar"}
 </td></tr>
 </tbody></table>
 
-### 格式化字符串放在Printf外部
+### 字符串 string format
 
 如果你为`Printf`-style函数声明格式字符串，请将格式化字符串放在外面，并将其设置为`const`常量。
 
@@ -1869,7 +1871,7 @@ fmt.Printf(msg, 1, 2)
 
   [Printf系列]: https://golang.org/cmd/vet/#hdr-Printf_family
 
-如果不能使用预定义的名称，请以f结束选择的名称：`Wrapf`，而不是`Wrap`。`go vet`可以要求检查特定的Printf样式名称，但名称必须以f结尾。
+如果不能使用预定义的名称，请以f结束选择的名称：`Wrapf`，而不是`Wrap`。`go vet`可以要求检查特定的Printf样式名称，但名称必须以`f`结尾。
 
 ```shell
 $ go vet -printfuncs=wrapf,statusf
@@ -1879,13 +1881,13 @@ $ go vet -printfuncs=wrapf,statusf
 
   [go vet: Printf family check]: https://kuzminva.wordpress.com/2017/11/07/go-vet-printf-family-check/
 
-## 模式
+## 编程模式
 
-### 测试Tables
+### 表驱动测试
 
-在核心测试逻辑重复时，将表驱动测试与[子测试]一起使用，以避免重复代码。
+当测试逻辑是重复的时候，通过  [subtests] 使用 table 驱动的方式编写 case 代码看上去会更简洁。
 
-  [子测试]: https://blog.golang.org/subtests
+  [subtests]: https://blog.golang.org/subtests
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1961,7 +1963,7 @@ for _, tt := range tests {
 </td></tr>
 </tbody></table>
 
-试表使向错误消息添加上下文，减少重复的逻辑以及添加新的测试用例变得更加容易。
+很明显，使用 test table 的方式在代码逻辑扩展的时候，比如新增 test case，都会显得更加的清晰。
 
 我们遵循这样的约定：将结构体切片称为`tests`。 每个测试用例称为`tt`。此外，我们鼓励使用`give`和`want`前缀说明每个测试用例的输入和输出值。
 
