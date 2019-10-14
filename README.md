@@ -200,8 +200,9 @@ i = s2Ptr
 //   i = s2Val
 ```
 
-[Effective Go] 中有一段关于[pointers vs values]的精彩讲解。
+[Effective Go] 中有一段关于[pointers vs. values]的精彩讲解。
 
+  [Effective Go]:https://golang.org/doc/effective_go.html
   [Pointers vs. Values]: https://golang.org/doc/effective_go.html#pointers_vs_values
 
 ### 零值Mutex是有效的
