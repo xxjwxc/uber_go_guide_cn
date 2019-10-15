@@ -52,66 +52,66 @@ row before the </tbody></table> line.
 
 # [English](https://github.com/uber-go/guide/blob/master/style.md)
 
-# Uber Go语言编码规范
+# Uber Go 语言编码规范
 
- [Uber](https://www.uber.com/)是一家美国硅谷的科技公司，也是Go语言的早期adopter.其开源了很多golang项目，诸如被Gopher圈熟知的[zap](https://github.com/uber-go/zap)、[jaeger](https://github.com/jaegertracing/jaeger)等。2018年年末Uber将内部的[Go风格规范](https://github.com/uber-go/guide)开源到github，经过一年的积累和更新，该规范已经初具规模，并受到广大Gopher的关注。本文是该规范的中文版本.本版本会根据原版实时更新。当前更新版本(2019-10-13)(commit:603824f872091e4c8b3a655fa77495074b89ebc5)
+ [Uber](https://www.uber.com/) 是一家美国硅谷的科技公司，也是 Go 语言的早期 adopter. 其开源了很多 golang 项目，诸如被 Gopher 圈熟知的 [zap](https://github.com/uber-go/zap)、[jaeger](https://github.com/jaegertracing/jaeger) 等。2018 年年末 Uber 将内部的 [Go 风格规范](https://github.com/uber-go/guide) 开源到 github，经过一年的积累和更新，该规范已经初具规模，并受到广大 Gopher 的关注。本文是该规范的中文版本。本版本会根据原版实时更新。当前更新版本 (2019-10-13)(commit:603824f872091e4c8b3a655fa77495074b89ebc5)
 
 ## 目录
 
 - [介绍](#介绍)
 - [指导原则](#指导原则)
-  - [指向interface的指针](#指向interface的指针)
-  - [接收器(receiver)与接口](#接收器(receiver)与接口)
-  - [零值Mutex是有效的](#零值Mutex是有效的)
-  - [在边界处拷贝Slices和Maps](#在边界处拷贝Slices和Maps)
-  - [使用defer做清理](#使用defer做清理)
-  - [Channel的size要么是1，要么是无缓冲的](#Channel的size要么是1，要么是无缓冲的)
-  - [枚举从1开始](#枚举从1开始)
+  - [指向 interface 的指针](#指向 interface 的指针)
+  - [接收器 (receiver) 与接口](#接收器 (receiver) 与接口）
+  - [零值 Mutex 是有效的](#零值 Mutex 是有效的)
+  - [在边界处拷贝 Slices 和 Maps](#在边界处拷贝 Slices 和 Maps)
+  - [使用 defer 做清理](#使用 defer 做清理)
+  - [Channel 的 size 要么是 1，要么是无缓冲的](#Channel 的 size 要么是 1，要么是无缓冲的)
+  - [枚举从 1 开始](#枚举从 1 开始)
   - [错误类型](#错误类型)
-  - [错误包装(Error Wrapping)](#错误包装(Error-Wrapping))
+  - [错误包装 (Error Wrapping)](#错误包装 (Error-Wrapping))
   - [处理类型断言失败](#处理类型断言失败)
-  - [不要panic](#不要panic)
-  - [使用go.uber.org/atomic](#使用go.uber.org/atomic)
+  - [不要 panic](#不要 panic)
+  - [使用 go.uber.org/atomic](#使用 go.uber.org/atomic)
 - [性能](#性能)
-  - [优先使用strconv而不是fmt](#优先使用strconv而不是fmt)
+  - [优先使用 strconv 而不是 fmt](#优先使用 strconv 而不是 fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
 - [规范](#规范)
   - [相似的声明放在一组](#相似的声明放在一组)
-  - [import组内的包导入顺序](#import组内的包导入顺序)
+  - [import 组内的包导入顺序](#import 组内的包导入顺序)
   - [包名](#包名)
   - [函数名](#函数名)
   - [导入别名](#导入别名)
   - [函数分组与顺序](#函数分组与顺序)
   - [减少嵌套](#减少嵌套)
-  - [不必要的else](#不必要的else)
+  - [不必要的 else](#不必要的 else)
   - [顶层变量声明](#顶层变量声明)
   - [对于未导出的顶层常量和变量，使用_作为前缀](#对于未导出的顶层常量和变量，使用_作为前缀)
   - [结构体中的嵌入](#结构体中的嵌入)
   - [使用字段名初始化结构体](#使用字段名初始化结构体)
   - [本地变量声明](#本地变量声明)
-  - [nil是一个有效的slice](#nil是一个有效的slice)
+  - [nil 是一个有效的 slice](#nil 是一个有效的 slice)
   - [小变量作用域](#小变量作用域)
   - [避免参数语义不明确（Avoid Naked Parameters）](#避免参数语义不明确（Avoid-Naked-Parameters）)
   - [使用原始字符串字面值，避免转义](#使用原始字符串字面值，避免转义)
-  - [初始化Struct引用](#初始化Struct引用)
+  - [初始化 Struct 引用](#初始化 Struct 引用)
   - [字符串 string format ](#字符串-string-format )
-  - [命名Printf样式的函数](#命名Printf样式的函数)
+  - [命名 Printf 样式的函数](#命名 Printf 样式的函数)
 - [编程模式](#编程模式)
   - [表驱动测试](#表驱动测试)
   - [功能选项](#功能选项)
 
 ## 介绍
 
-样式(style)是支配我们代码的惯例。术语`样式`有点用词不当，因为这些约定涵盖的范围不限于由gofmt替我们处理的源文件格式。
+样式 (style) 是支配我们代码的惯例。术语`样式`有点用词不当，因为这些约定涵盖的范围不限于由 gofmt 替我们处理的源文件格式。
 
-本指南的目的是通过详细描述在Uber编写Go代码的注意事项来管理这种复杂性。这些规则的存在是为了使代码库易于管理，同时仍然允许工程师更有效地使用Go语言功能。
+本指南的目的是通过详细描述在 Uber 编写 Go 代码的注意事项来管理这种复杂性。这些规则的存在是为了使代码库易于管理，同时仍然允许工程师更有效地使用 Go 语言功能。
 
-该指南最初由[Prashant Varanasi]和[Simon Newton]编写，目的是使一些同事能快速使用Go。多年来，该指南已根据其他人的反馈进行了修改。
+该指南最初由 [Prashant Varanasi] 和 [Simon Newton] 编写，目的是使一些同事能快速使用 Go。多年来，该指南已根据其他人的反馈进行了修改。
 
   [Prashant Varanasi]: https://github.com/prashantv
   [Simon Newton]: https://github.com/nomis52
 
-本文档记录了我们在Uber遵循的Go代码中的惯用约定。其中许多是Go的通用准则，而其他扩展准则依赖于下面外部的指南：
+本文档记录了我们在 Uber 遵循的 Go 代码中的惯用约定。其中许多是 Go 的通用准则，而其他扩展准则依赖于下面外部的指南：
 
 1. [Effective Go](https://golang.org/doc/effective_go.html)
 2. [The Go common mistakes guide](https://github.com/golang/go/wiki/CodeReviewComments)
@@ -121,27 +121,27 @@ row before the </tbody></table> line.
 - 保存时运行 `goimports`
 - 运行 `golint` 和 `go vet` 检查错误
 
-您可以在以下Go编辑器工具支持页面中找到更为详细的信息:
+您可以在以下 Go 编辑器工具支持页面中找到更为详细的信息：
 <https://github.com/golang/go/wiki/IDEsAndTextEditorPlugins>
 
 ## 指导原则
 
-### 指向interface的指针
+### 指向 interface 的指针
 
 您几乎不需要指向接口类型的指针。您应该将接口作为值进行传递，在这样的传递过程中，实质上传递的底层数据仍然可以是指针。
 
-接口实质上在底层用两个字段表示:
+接口实质上在底层用两个字段表示：
 
 1. 一个指向某些特定类型信息的指针。您可以将其视为"type."
 2. 数据指针。如果存储的数据是指针，则直接存储。如果存储的数据是一个值，则存储指向该值的指针。
 
 如果希望接口方法修改基础数据，则必须使用指针传递。
 
-### 接收器(receiver)与接口
+### 接收器 (receiver) 与接口
 
 使用值接收器的方法既可以通过值调用，也可以通过指针调用。
 
-例如,
+例如，
 
 ```go
 type S struct {
@@ -158,15 +158,15 @@ func (s *S) Write(str string) {
 
 sVals := map[int]S{1: {"A"}}
 
-// 你只能通过值调用Read
+// 你只能通过值调用 Read
 sVals[1].Read()
 
-// 这不能编译通过:
+// 这不能编译通过：
 //  sVals[1].Write("test")
 
 sPtrs := map[int]*S{1: {"A"}}
 
-// 通过指针既可以调用Read，也可以调用Write方法
+// 通过指针既可以调用 Read，也可以调用 Write 方法
 sPtrs[1].Read()
 sPtrs[1].Write("test")
 ```
@@ -196,18 +196,18 @@ i = s1Val
 i = s1Ptr
 i = s2Ptr
 
-//  下面代码无法通过编译。因为s2Val是一个值，而S2的f方法中没有使用值接收器
+//  下面代码无法通过编译。因为 s2Val 是一个值，而 S2 的 f 方法中没有使用值接收器
 //   i = s2Val
 ```
 
-[Effective Go] 中有一段关于[pointers vs. values]的精彩讲解。
+[Effective Go] 中有一段关于 [pointers vs. values] 的精彩讲解。
 
   [Effective Go]:https://golang.org/doc/effective_go.html
   [Pointers vs. Values]: https://golang.org/doc/effective_go.html#pointers_vs_values
 
-### 零值Mutex是有效的
+### 零值 Mutex 是有效的
 
-sync.Mutex和sync.RWMutex是有效的。因此你几乎不需要一个指向mutex的指针。
+sync.Mutex 和 sync.RWMutex 是有效的。因此你几乎不需要一个指向 mutex 的指针。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -229,8 +229,8 @@ mu.Lock()
 </td></tr>
 </tbody></table>
 
-如果你使用结构体指针，mutex可以非指针形式作为结构体的组成字段，或者更好的方式是直接嵌入到结构体中。
-如果是私有结构体类型或是要实现Mutex接口的类型，我们可以使用嵌入mutex的方法：
+如果你使用结构体指针，mutex 可以非指针形式作为结构体的组成字段，或者更好的方式是直接嵌入到结构体中。
+如果是私有结构体类型或是要实现 Mutex 接口的类型，我们可以使用嵌入 mutex 的方法：
 
 <table>
 <tbody>
@@ -290,13 +290,13 @@ func (m *SMap) Get(k string) string {
 
 </tbody></table>
 
-### 在边界处拷贝Slices和Maps
+### 在边界处拷贝 Slices 和 Maps
 
-slices和maps包含了指向底层数据的指针，因此在需要复制它们时要特别注意。
+slices 和 maps 包含了指向底层数据的指针，因此在需要复制它们时要特别注意。
 
-#### 接收Slices和Maps
+#### 接收 Slices 和 Maps
 
-请记住，当map或slice作为函数参数传入时，如果您存储了对它们的引用，则用户可以对其进行修改。
+请记住，当 map 或 slice 作为函数参数传入时，如果您存储了对它们的引用，则用户可以对其进行修改。
 
 <table>
 <thead><tr><th>Bad</th> <th>Good</th></tr></thead>
@@ -312,7 +312,7 @@ func (d *Driver) SetTrips(trips []Trip) {
 trips := ...
 d1.SetTrips(trips)
 
-// 你是要修改d1.trips吗？
+// 你是要修改 d1.trips 吗？
 trips[0] = ...
 ```
 
@@ -328,7 +328,7 @@ func (d *Driver) SetTrips(trips []Trip) {
 trips := ...
 d1.SetTrips(trips)
 
-// 这里我们修改trips[0]，但不会影响到d1.trips
+// 这里我们修改 trips[0]，但不会影响到 d1.trips
 trips[0] = ...
 ```
 
@@ -338,9 +338,9 @@ trips[0] = ...
 </tbody>
 </table>
 
-#### 返回slices或maps
+#### 返回 slices 或 maps
 
-同样，请注意用户对暴露内部状态的map或slice的修改。
+同样，请注意用户对暴露内部状态的 map 或 slice 的修改。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -354,7 +354,7 @@ type Stats struct {
   counters map[string]int
 }
 
-// Snapshot返回当前状态。
+// Snapshot 返回当前状态。
 func (s *Stats) Snapshot() map[string]int {
   s.Lock()
   defer s.Unlock()
@@ -362,7 +362,7 @@ func (s *Stats) Snapshot() map[string]int {
   return s.counters
 }
 
-// snapshot不再受到锁的保护
+// snapshot 不再受到锁的保护
 snapshot := stats.Snapshot()
 ```
 
@@ -386,16 +386,16 @@ func (s *Stats) Snapshot() map[string]int {
   return result
 }
 
-// snapshot现在是一个拷贝
+// snapshot 现在是一个拷贝
 snapshot := stats.Snapshot()
 ```
 
 </td></tr>
 </tbody></table>
 
-### 使用defer做清理
+### 使用 defer 做清理
 
-使用defer清理资源，诸如文件和锁。
+使用 defer 清理资源，诸如文件和锁。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -415,7 +415,7 @@ p.Unlock()
 
 return newCount
 
-// 当有多个return分支时，很容易遗忘unlock
+// 当有多个 return 分支时，很容易遗忘 unlock
 ```
 
 </td><td>
@@ -437,11 +437,11 @@ return p.count
 </td></tr>
 </tbody></table>
 
-Defer的开销非常小，只有在您可以证明函数执行时间处于纳秒级的程度时，才应避免这样做。使用defer提升可读性是值得的，因为使用它们的成本微不足道。尤其适用于那些不仅仅是简单内存访问的较大的方法，在这些方法中其他计算的资源消耗远超过 `defer`。
+Defer 的开销非常小，只有在您可以证明函数执行时间处于纳秒级的程度时，才应避免这样做。使用 defer 提升可读性是值得的，因为使用它们的成本微不足道。尤其适用于那些不仅仅是简单内存访问的较大的方法，在这些方法中其他计算的资源消耗远超过 `defer`。
 
-### Channel的size要么是1，要么是无缓冲的
+### Channel 的 size 要么是 1，要么是无缓冲的
 
-channel通常size应为1或是无缓冲的。默认情况下，channel是无缓冲的，其size为零。任何其他尺寸都必须经过严格的审查。考虑如何确定大小，是什么阻止了channel在负载下被填满并阻止写入，以及发生这种情况时发生了什么。
+channel 通常 size 应为 1 或是无缓冲的。默认情况下，channel 是无缓冲的，其 size 为零。任何其他尺寸都必须经过严格的审查。考虑如何确定大小，是什么阻止了 channel 在负载下被填满并阻止写入，以及发生这种情况时发生了什么。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -449,7 +449,7 @@ channel通常size应为1或是无缓冲的。默认情况下，channel是无缓�
 <tr><td>
 
 ```go
-// 应该足以满足任何情况!
+// 应该足以满足任何情况！
 c := make(chan int, 64)
 ```
 
@@ -458,16 +458,16 @@ c := make(chan int, 64)
 ```go
 // 大小：1
 c := make(chan int, 1) // 或者
-// 无缓冲channel，大小为0
+// 无缓冲 channel，大小为 0
 c := make(chan int)
 ```
 
 </td></tr>
 </tbody></table>
 
-### 枚举从1开始
+### 枚举从 1 开始
 
-在Go中引入枚举的标准方法是声明一个自定义类型和一个使用了iota的const组。由于变量的默认值为0，因此通常应以非零值开头枚举。
+在 Go 中引入枚举的标准方法是声明一个自定义类型和一个使用了 iota 的 const 组。由于变量的默认值为 0，因此通常应以非零值开头枚举。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -503,7 +503,7 @@ const (
 </td></tr>
 </tbody></table>
 
-在某些情况下，使用零值是有意义的(枚举从零开始)，例如，当零值是理想的默认行为时。
+在某些情况下，使用零值是有意义的（枚举从零开始），例如，当零值是理想的默认行为时。
 
 ```go
 type LogOutput int
@@ -521,25 +521,25 @@ const (
 
 ### 错误类型
 
-Go中有多种声明错误（Error)的选项：
+Go 中有多种声明错误（Error) 的选项：
 
 - [`errors.New`] 对于简单静态字符串的错误
 - [`fmt.Errorf`] 用于格式化的错误字符串
 - 实现 `Error()` 方法的自定义类型
--  用 [`"pkg/errors".Wrap`]的 Wrapped errors
+-  用 [`"pkg/errors".Wrap`] 的 Wrapped errors
 
 返回错误时，请考虑以下因素以确定最佳选择：
 
-- 这是一个不需要额外信息的简单错误吗？如果是这样，[`errors.New`] 足够了.
+- 这是一个不需要额外信息的简单错误吗？如果是这样，[`errors.New`] 足够了。
 - 客户需要检测并处理此错误吗？如果是这样，则应使用自定义类型并实现该 `Error()` 方法。
-- 您是否正在传播下游函数返回的错误？如果是这样，请查看本文后面有关错误包装 [section on error wrapping](#错误包装(Error-Wrapping))部分的内容.
-- 否则 [`fmt.Errorf`] 就可以了.
+- 您是否正在传播下游函数返回的错误？如果是这样，请查看本文后面有关错误包装 [section on error wrapping](#错误包装 (Error-Wrapping)) 部分的内容。
+- 否则 [`fmt.Errorf`] 就可以了。
 
   [`errors.New`]: https://golang.org/pkg/errors/#New
   [`fmt.Errorf`]: https://golang.org/pkg/fmt/#Errorf
   [`"pkg/errors".Wrap`]: https://godoc.org/github.com/pkg/errors#Wrap
 
-如果客户端需要检测错误，并且您已使用创建了一个简单的错误[`errors.New`]，请使用一个错误变量。
+如果客户端需要检测错误，并且您已使用创建了一个简单的错误 [`errors.New`]，请使用一个错误变量。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -643,7 +643,7 @@ func use() {
 </td></tr>
 </tbody></table>
 
-直接导出自定义错误类型时要小心，因为它们已成为程序包公共API的一部分。最好公开匹配器功能以检查错误。
+直接导出自定义错误类型时要小心，因为它们已成为程序包公共 API 的一部分。最好公开匹配器功能以检查错误。
 
 ```go
 // package foo
@@ -678,15 +678,15 @@ if err := foo.Open("foo"); err != nil {
 
 <!-- TODO: Exposing the information to callers with accessor functions. -->
 
-### 错误包装(Error Wrapping)
+### 错误包装 (Error Wrapping)
 
-一个(函数/方法)调用失败时，有三种主要的错误传播方式：
+一个（函数/方法）调用失败时，有三种主要的错误传播方式：
 
 - 如果没有要添加的其他上下文，并且您想要维护原始错误类型，则返回原始错误。
 - 添加上下文，使用 [`"pkg/errors".Wrap`] 以便错误消息提供更多上下文 ,[`"pkg/errors".Cause`] 可用于提取原始错误。
-- 使用[`fmt.Errorf`] ，如果调用者不需要检测或处理的特定错误情况。  specific error case.
+- 使用 [`fmt.Errorf`] ，如果调用者不需要检测或处理的特定错误情况。  specific error case.
 
-建议在可能的地方添加上下文，以使您获得诸如“调用服务foo：连接被拒绝”之类的更有用的错误，而不是诸如“连接被拒绝”之类的模糊错误。
+建议在可能的地方添加上下文，以使您获得诸如“调用服务 foo：连接被拒绝”之类的更有用的错误，而不是诸如“连接被拒绝”之类的模糊错误。
 
 在将上下文添加到返回的错误时，请避免使用“failed to”之类的短语来保持上下文简洁，这些短语会陈述明显的内容，并随着错误在堆栈中的渗透而逐渐堆积：
 
@@ -730,14 +730,14 @@ x: y: new store: the error
 
 但是，一旦将错误发送到另一个系统，就应该明确消息是错误消息（例如使用`err`标记，或在日志中以”Failed”为前缀）。
 
-另请参见 [Don't just check errors, handle them gracefully].不要只是检查错误，要优雅地处理错误
+另请参见 [Don't just check errors, handle them gracefully]. 不要只是检查错误，要优雅地处理错误
 
   [`"pkg/errors".Cause`]: https://godoc.org/github.com/pkg/errors#Cause
   [Don't just check errors, handle them gracefully]: https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
 
 ### 处理类型断言失败
 
-[type assertion]的单个返回值形式针对不正确的类型将产生panic。因此，请始终使用“comma ok”的惯用法。
+[type assertion] 的单个返回值形式针对不正确的类型将产生 panic。因此，请始终使用“comma ok”的惯用法。
 
   [type assertion]: https://golang.org/ref/spec#Type_assertions
 
@@ -765,9 +765,9 @@ if !ok {
 <!-- TODO: There are a few situations where the single assignment form is
 fine. -->
 
-### 不要panic
+### 不要 panic
 
-在生产环境中运行的代码必须避免出现panic。panic是[cascading failures]级联失败的主要根源 。如果发生错误，该函数必须返回错误，并允许调用方决定如何处理它。
+在生产环境中运行的代码必须避免出现 panic。panic 是 [cascading failures] 级联失败的主要根源 。如果发生错误，该函数必须返回错误，并允许调用方决定如何处理它。
 
   [cascading failures]: https://en.wikipedia.org/wiki/Cascading_failure
 
@@ -818,7 +818,7 @@ func main() {
 </td></tr>
 </tbody></table>
 
-panic/recover不是错误处理策略。仅当发生不可恢复的事情（例如:nil引用）时，程序才必须panic。程序初始化是一个例外：程序启动时应使程序中止的不良情况可能会引起panic。
+panic/recover 不是错误处理策略。仅当发生不可恢复的事情（例如：nil 引用）时，程序才必须 panic。程序初始化是一个例外：程序启动时应使程序中止的不良情况可能会引起 panic。
 
 ```go
 var _statusTemplate = template.Must(template.New("name").Parse("_statusHTML"))
@@ -857,11 +857,11 @@ if err != nil {
 
 <!-- TODO: Explain how to use _test packages. -->
 
-### 使用go.uber.org/atomic
+### 使用 go.uber.org/atomic
 
-使用[sync/atomic]包的原子操作对原始类型(`int32`, `int64`等)进行操作，因此很容易忘记使用原子操作来读取或修改变量。
+使用 [sync/atomic] 包的原子操作对原始类型 (`int32`, `int64`等）进行操作，因此很容易忘记使用原子操作来读取或修改变量。
 
-[go.uber.org/atomic]通过隐藏基础类型为这些操作增加了类型安全性。此外，它包括一个方便的`atomic.Bool`类型。
+[go.uber.org/atomic] 通过隐藏基础类型为这些操作增加了类型安全性。此外，它包括一个方便的`atomic.Bool`类型。
 
   [go.uber.org/atomic]: https://godoc.org/go.uber.org/atomic
   [sync/atomic]: https://golang.org/pkg/sync/atomic/
@@ -916,7 +916,7 @@ func (f *foo) isRunning() bool {
 
 性能方面的特定准则，适用于热路径。
 
-### 优先使用strconv而不是fmt
+### 优先使用 strconv 而不是 fmt
 
 将原语转换为字符串或从字符串转换时，`strconv`速度比`fmt`快。
 
@@ -957,7 +957,7 @@ BenchmarkStrconv-4    64.2 ns/op    1 allocs/op
 
 ### 避免字符串到字节的转换
 
-不要反复从固定字符串创建字节slice。相反，请执行一次转换并捕获结果。
+不要反复从固定字符串创建字节 slice。相反，请执行一次转换并捕获结果。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -999,7 +999,7 @@ BenchmarkGood-4  500000000   3.25 ns/op
 
 ### 相似的声明放在一组
 
-Go语言支持将相似的声明放在一个组内.
+Go 语言支持将相似的声明放在一个组内。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1035,12 +1035,8 @@ import (
 const a = 1
 const b = 2
 
-
-
 var a = 1
 var b = 2
-
-
 
 type Area float64
 type Volume float64
@@ -1137,14 +1133,14 @@ func f() string {
 </td></tr>
 </tbody></table>
 
-### import组内的包导入顺序
+### import 组内的包导入顺序
 
 应该有两类导入组：
 
 - 标准库
 - 其他一切
 
-默认情况下，这是goimports应用的分组。
+默认情况下，这是 goimports 应用的分组。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1185,16 +1181,16 @@ import (
 - 不用复数。例如`net/url`，而不是`net/urls`。
 - 不要用“common”，“util”，“shared”或“lib”。这些是不好的，信息量不足的名称。
 
-另请参阅 [Package Names] 和 [Go包样式指南].
+另请参阅 [Package Names] 和 [Go 包样式指南].
 
   [Package Names]: https://blog.golang.org/package-names
-  [Go包样式指南]: https://rakyll.org/style-packages/
+  [Go 包样式指南]: https://rakyll.org/style-packages/
 
 ### 函数名
 
-我们遵循Go社区关于使用[MixedCaps作为函数名]的约定。有一个例外，为了对相关的测试用例进行分组，函数名可能包含下划线，如: `TestMyFunction_WhatIsBeingTested`.
+我们遵循 Go 社区关于使用 [MixedCaps 作为函数名] 的约定。有一个例外，为了对相关的测试用例进行分组，函数名可能包含下划线，如：`TestMyFunction_WhatIsBeingTested`.
 
-  [MixedCaps作为函数名]: https://golang.org/doc/effective_go.html#mixed-caps
+  [MixedCaps 作为函数名]: https://golang.org/doc/effective_go.html#mixed-caps
 
 ### 导入别名
 
@@ -1220,7 +1216,6 @@ import (
 import (
   "fmt"
   "os"
-
 
   nettrace "golang.net/x/trace"
 )
@@ -1338,9 +1333,9 @@ for _, v := range data {
 </td></tr>
 </tbody></table>
 
-### 不必要的else
+### 不必要的 else
 
-如果在if的两个分支中都设置了变量，则可以将其替换为单个if。
+如果在 if 的两个分支中都设置了变量，则可以将其替换为单个 if。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1387,7 +1382,7 @@ func F() string { return "A" }
 
 ```go
 var _s = F()
-// 由于F已经明确了返回一个字符串类型，因此我们没有必要显式指定_s的类型
+// 由于 F 已经明确了返回一个字符串类型，因此我们没有必要显式指定_s 的类型
 // 还是那种类型
 
 func F() string { return "A" }
@@ -1406,7 +1401,7 @@ func (myError) Error() string { return "error" }
 func F() myError { return myError{} }
 
 var _e error = F()
-// F返回一个myError类型的实例，但是我们要error类型
+// F 返回一个 myError 类型的实例，但是我们要 error 类型
 ```
 
 ### 对于未导出的顶层常量和变量，使用_作为前缀
@@ -1458,7 +1453,7 @@ const (
 
 ### 结构体中的嵌入
 
-嵌入式类型（例如mutex）应位于结构体内的字段列表的顶部，并且必须有一个空行将嵌入式字段与常规字段分隔开。
+嵌入式类型（例如 mutex）应位于结构体内的字段列表的顶部，并且必须有一个空行将嵌入式字段与常规字段分隔开。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1487,7 +1482,7 @@ type Client struct {
 
 ### 使用字段名初始化结构体
 
-初始化结构体时，几乎始终应该指定字段名称。现在由[`go vet`]强制执行。
+初始化结构体时，几乎始终应该指定字段名称。现在由 [`go vet`] 强制执行。
 
   [`go vet`]: https://golang.org/cmd/vet/
 
@@ -1513,7 +1508,7 @@ k := User{
 </td></tr>
 </tbody></table>
 
-例外：如果有3个或更少的字段，则可以在测试表中省略字段名称。
+例外：如果有 3 个或更少的字段，则可以在测试表中省略字段名称。
 
 ```go
 tests := []struct{
@@ -1583,9 +1578,9 @@ func f(list []int) {
 </td></tr>
 </tbody></table>
 
-### nil是一个有效的slice
+### nil 是一个有效的 slice
 
-`nil` 是一个有效的长度为0的slice，这意味着,
+`nil` 是一个有效的长度为 0 的 slice，这意味着，
 
 - 您不应明确返回长度为零的切片。应该返回`nil` 来代替。
 
@@ -1635,7 +1630,7 @@ func f(list []int) {
   </td></tr>
   </tbody></table>
 
-- 零值切片(用`var`声明的切片)可立即使用，无需调用`make()`创建。
+- 零值切片（用`var`声明的切片）可立即使用，无需调用`make()`创建。
 
   <table>
   <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1674,7 +1669,7 @@ func f(list []int) {
 
 ### 小变量作用域
 
-如果有可能，尽量缩小变量作用范围。除非它与[减少嵌套](#减少嵌套)的规则冲突。
+如果有可能，尽量缩小变量作用范围。除非它与 [减少嵌套](#减少嵌套)的规则冲突。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1699,7 +1694,7 @@ if err := ioutil.WriteFile(name, data, 0644); err != nil {
 </td></tr>
 </tbody></table>
 
-如果需要在if之外使用函数调用的结果，则不应尝试缩小范围。
+如果需要在 if 之外使用函数调用的结果，则不应尝试缩小范围。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1741,7 +1736,7 @@ return nil
 
 ### 避免参数语义不明确（Avoid Naked Parameters）
 
-函数调用中的`意义不明确的参数`可能会损害可读性。当参数名称的含义不明显时，请为参数添加C样式注释(`/* ... */`)
+函数调用中的`意义不明确的参数`可能会损害可读性。当参数名称的含义不明显时，请为参数添加 C 样式注释 (`/* ... */`)
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1788,7 +1783,7 @@ func printInfo(name string, region Region, status Status)
 
 ### 使用原始字符串字面值，避免转义
 
-Go 支持使用[原始字符串字面值](https://golang.org/ref/spec#raw_string_lit)，也就是 " ` " 来表示原生字符串，在需要转义的场景下，我们应该尽量使用这种方案来替换。
+Go 支持使用 [原始字符串字面值](https://golang.org/ref/spec#raw_string_lit)，也就是 " ` " 来表示原生字符串，在需要转义的场景下，我们应该尽量使用这种方案来替换。
 
 可以跨越多行并包含引号。使用这些字符串可以避免更难阅读的手工转义的字符串。
 
@@ -1810,7 +1805,7 @@ wantError := `unknown error:"test"`
 </td></tr>
 </tbody></table>
 
-### 初始化Struct引用
+### 初始化 Struct 引用
 
 在初始化结构引用时，请使用`&T{}`代替`new(T)`，以使其与结构体初始化一致。
 
@@ -1840,7 +1835,7 @@ sptr := &T{Name: "bar"}
 
 ### 字符串 string format
 
-如果你为`Printf`-style函数声明格式字符串，请将格式化字符串放在外面，并将其设置为`const`常量。
+如果你为`Printf`-style 函数声明格式字符串，请将格式化字符串放在外面，并将其设置为`const`常量。
 
 这有助于`go vet`对格式字符串执行静态分析。
 
@@ -1864,15 +1859,15 @@ fmt.Printf(msg, 1, 2)
 </td></tr>
 </tbody></table>
 
-### 命名Printf样式的函数
+### 命名 Printf 样式的函数
 
-声明`Printf`-style函数时，请确保`go vet`可以检测到它并检查格式字符串。
+声明`Printf`-style 函数时，请确保`go vet`可以检测到它并检查格式字符串。
 
-这意味着您应尽可能使用预定义的`Printf`-style函数名称。`go vet`将默认检查这些。有关更多信息，请参见[Printf系列]。
+这意味着您应尽可能使用预定义的`Printf`-style 函数名称。`go vet`将默认检查这些。有关更多信息，请参见 [Printf 系列]。
 
-  [Printf系列]: https://golang.org/cmd/vet/#hdr-Printf_family
+  [Printf 系列]: https://golang.org/cmd/vet/#hdr-Printf_family
 
-如果不能使用预定义的名称，请以f结束选择的名称：`Wrapf`，而不是`Wrap`。`go vet`可以要求检查特定的Printf样式名称，但名称必须以`f`结尾。
+如果不能使用预定义的名称，请以 f 结束选择的名称：`Wrapf`，而不是`Wrap`。`go vet`可以要求检查特定的 Printf 样式名称，但名称必须以`f`结尾。
 
 ```shell
 $ go vet -printfuncs=wrapf,statusf
@@ -1984,9 +1979,9 @@ for _, tt := range tests {
 
 ### 功能选项
 
-功能选项是一种模式，您可以在其中声明一个不透明Option类型，该类型在某些内部结构中记录信息。您接受这些选项的可变编号，并根据内部结构上的选项记录的全部信息采取行动。
+功能选项是一种模式，您可以在其中声明一个不透明 Option 类型，该类型在某些内部结构中记录信息。您接受这些选项的可变编号，并根据内部结构上的选项记录的全部信息采取行动。
 
-将此模式用于您需要扩展的构造函数和其他公共API中的可选参数，尤其是在这些功能上已经具有三个或更多参数的情况下。
+将此模式用于您需要扩展的构造函数和其他公共 API 中的可选参数，尤其是在这些功能上已经具有三个或更多参数的情况下。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
