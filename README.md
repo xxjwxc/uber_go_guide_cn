@@ -92,7 +92,7 @@ row before the </tbody></table> line.
   - [nil 是一个有效的 slice](#nil-是一个有效的-slice)
   - [小变量作用域](#小变量作用域)
   - [避免参数语义不明确（Avoid Naked Parameters）](#避免参数语义不明确Avoid-Naked-Parameters)
-  - [使用原始字符串字面值,避免转义](#使用原始字符串字面值,避免转义)
+  - [使用原始字符串字面值,避免转义](#使用原始字符串字面值避免转义)
   - [初始化 Struct 引用](#初始化-Struct-引用)
   - [字符串 string format ](#字符串-string-format )
   - [命名 Printf 样式的函数](#命名-Printf-样式的函数)
