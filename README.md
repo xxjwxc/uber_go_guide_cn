@@ -61,7 +61,7 @@ row before the </tbody></table> line.
 - [介绍](#介绍)
 - [指导原则](#指导原则)
   - [指向 interface 的指针](#指向-interface-的指针)
-  - [接收器 receiver 与接口](#接收器-receiver-与接口)
+  - [接收器 (receiver) 与接口](#接收器-receiver-与接口)
   - [零值 Mutex 是有效的](#零值-Mutex-是有效的)
   - [在边界处拷贝 Slices 和 Maps](#在边界处拷贝-Slices-和-Maps)
   - [使用 defer 做清理](#使用-defer-做清理)
@@ -71,7 +71,7 @@ row before the </tbody></table> line.
   - [错误包装 (Error Wrapping)](#错误包装-(Error-Wrapping))
   - [处理类型断言失败](#处理类型断言失败)
   - [不要 panic](#不要-panic)
-  - [使用 go.uber.org/atomic](#使用go.uber.org/atomic)
+  - [使用 go.uber.org/atomic](#使用-gouberorgatomic)
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
@@ -85,14 +85,14 @@ row before the </tbody></table> line.
   - [减少嵌套](#减少嵌套)
   - [不必要的 else](#不必要的-else)
   - [顶层变量声明](#顶层变量声明)
-  - [对于未导出的顶层常量和变量，使用_作为前缀](#对于未导出的顶层常量和变量，使用_作为前缀)
+  - [对于未导出的顶层常量和变量,使用_作为前缀](#对于未导出的顶层常量和变量,使用_作为前缀)
   - [结构体中的嵌入](#结构体中的嵌入)
   - [使用字段名初始化结构体](#使用字段名初始化结构体)
   - [本地变量声明](#本地变量声明)
   - [nil 是一个有效的 slice](#nil-是一个有效的-slice)
   - [小变量作用域](#小变量作用域)
-  - [避免参数语义不明确（Avoid Naked Parameters）](#避免参数语义不明确（Avoid-Naked-Parameters）)
-  - [使用原始字符串字面值，避免转义](#使用原始字符串字面值，避免转义)
+  - [避免参数语义不明确（Avoid Naked Parameters）](#避免参数语义不明确Avoid-Naked-Parameters)
+  - [使用原始字符串字面值,避免转义](#使用原始字符串字面值,避免转义)
   - [初始化 Struct 引用](#初始化-Struct-引用)
   - [字符串 string format ](#字符串-string-format )
   - [命名 Printf 样式的函数](#命名-Printf-样式的函数)
@@ -137,7 +137,7 @@ row before the </tbody></table> line.
 
 如果希望接口方法修改基础数据，则必须使用指针传递。
 
-### 接收器 receiver 与接口
+### 接收器 (receiver) 与接口
 
 使用值接收器的方法既可以通过值调用，也可以通过指针调用。
 
@@ -857,7 +857,7 @@ if err != nil {
 
 <!-- TODO: Explain how to use _test packages. -->
 
-### 使用go.uber.org/atomic
+### 使用 go.uber.org/atomic
 
 使用 [sync/atomic] 包的原子操作对原始类型 (`int32`, `int64`等）进行操作，因此很容易忘记使用原子操作来读取或修改变量。
 
@@ -1404,7 +1404,7 @@ var _e error = F()
 // F 返回一个 myError 类型的实例，但是我们要 error 类型
 ```
 
-### 对于未导出的顶层常量和变量，使用_作为前缀
+### 对于未导出的顶层常量和变量,使用_作为前缀
 
 在未导出的顶级`vars`和`consts`， 前面加上前缀_，以使它们在使用时明确表示它们是全局符号。
 
@@ -1734,7 +1734,7 @@ return nil
 </td></tr>
 </tbody></table>
 
-### 避免参数语义不明确（Avoid Naked Parameters）
+### 避免参数语义不明确(Avoid Naked Parameters)
 
 函数调用中的`意义不明确的参数`可能会损害可读性。当参数名称的含义不明显时，请为参数添加 C 样式注释 (`/* ... */`)
 
@@ -1781,7 +1781,7 @@ const (
 func printInfo(name string, region Region, status Status)
 ```
 
-### 使用原始字符串字面值，避免转义
+### 使用原始字符串字面值,避免转义
 
 Go 支持使用 [原始字符串字面值](https://golang.org/ref/spec#raw_string_lit)，也就是 " ` " 来表示原生字符串，在需要转义的场景下，我们应该尽量使用这种方案来替换。
 
