@@ -71,7 +71,7 @@ row before the </tbody></table> line.
   - [错误包装 (Error Wrapping)](#错误包装-(Error-Wrapping))
   - [处理类型断言失败](#处理类型断言失败)
   - [不要 panic](#不要-panic)
-  - [使用 go.uber.org/atomic](#使用-go.uber.org/atomic)
+  - [使用 go.uber.org/atomic](#使用`go.uber.org/atomic`)
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
@@ -857,7 +857,7 @@ if err != nil {
 
 <!-- TODO: Explain how to use _test packages. -->
 
-### 使用 go.uber.org/atomic
+### 使用`go.uber.org/atomic`
 
 使用 [sync/atomic] 包的原子操作对原始类型 (`int32`, `int64`等）进行操作，因此很容易忘记使用原子操作来读取或修改变量。
 
