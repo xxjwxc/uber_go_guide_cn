@@ -61,7 +61,7 @@ row before the </tbody></table> line.
 - [介绍](#介绍)
 - [指导原则](#指导原则)
   - [指向 interface 的指针](#指向-interface-的指针)
-  - [接收器 (receiver) 与接口](#接收器-(receiver)-与接口)
+  - [接收器 (receiver) 与接口](#接收器`receiver`与接口)
   - [零值 Mutex 是有效的](#零值-Mutex-是有效的)
   - [在边界处拷贝 Slices 和 Maps](#在边界处拷贝-Slices-和-Maps)
   - [使用 defer 做清理](#使用-defer-做清理)
@@ -137,7 +137,7 @@ row before the </tbody></table> line.
 
 如果希望接口方法修改基础数据，则必须使用指针传递。
 
-### 接收器 (receiver) 与接口
+### 接收器`receiver`与接口
 
 使用值接收器的方法既可以通过值调用，也可以通过指针调用。
 
