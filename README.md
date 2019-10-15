@@ -65,13 +65,13 @@ row before the </tbody></table> line.
   - [零值 Mutex 是有效的](#零值-Mutex-是有效的)
   - [在边界处拷贝 Slices 和 Maps](#在边界处拷贝-Slices-和-Maps)
   - [使用 defer 做清理](#使用-defer-做清理)
-  - [Channel 的 size 要么是 1，要么是无缓冲的](#Channel-的-size-要么是-1，要么是无缓冲的)
+  - [Channel 的 size 要么是 1，要么是无缓冲的](#Channel-的-size-要么是-1,要么是无缓冲的)
   - [枚举从 1 开始](#枚举从-1-开始)
   - [错误类型](#错误类型)
   - [错误包装 (Error Wrapping)](#错误包装-(Error-Wrapping))
   - [处理类型断言失败](#处理类型断言失败)
   - [不要 panic](#不要-panic)
-  - [使用 go.uber.org/atomic](#使用`go.uber.org/atomic`)
+  - [使用 go.uber.org/atomic](#使用-go.uber.org/atomic)
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
@@ -439,7 +439,7 @@ return p.count
 
 Defer 的开销非常小，只有在您可以证明函数执行时间处于纳秒级的程度时，才应避免这样做。使用 defer 提升可读性是值得的，因为使用它们的成本微不足道。尤其适用于那些不仅仅是简单内存访问的较大的方法，在这些方法中其他计算的资源消耗远超过 `defer`。
 
-### Channel 的 size 要么是 1，要么是无缓冲的
+### Channel 的 size 要么是 1,要么是无缓冲的
 
 channel 通常 size 应为 1 或是无缓冲的。默认情况下，channel 是无缓冲的，其 size 为零。任何其他尺寸都必须经过严格的审查。考虑如何确定大小，是什么阻止了 channel 在负载下被填满并阻止写入，以及发生这种情况时发生了什么。
 
@@ -857,7 +857,7 @@ if err != nil {
 
 <!-- TODO: Explain how to use _test packages. -->
 
-### 使用`go.uber.org/atomic`
+### 使用 go.uber.org/atomic
 
 使用 [sync/atomic] 包的原子操作对原始类型 (`int32`, `int64`等）进行操作，因此很容易忘记使用原子操作来读取或修改变量。
 
