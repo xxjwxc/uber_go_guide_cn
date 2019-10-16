@@ -56,6 +56,8 @@ row before the </tbody></table> line.
 
  [Uber](https://www.uber.com/) 是一家美国硅谷的科技公司，也是 Go 语言的早期 adopter. 其开源了很多 golang 项目，诸如被 Gopher 圈熟知的 [zap](https://github.com/uber-go/zap)、[jaeger](https://github.com/jaegertracing/jaeger) 等。2018 年年末 Uber 将内部的 [Go 风格规范](https://github.com/uber-go/guide) 开源到 github，经过一年的积累和更新，该规范已经初具规模，并受到广大 Gopher 的关注。本文是该规范的中文版本。本版本会根据原版实时更新。
  
+ ## 版本
+ 
  当前更新版本:2019-10-17 版本地址：[commit:#45](https://github.com/uber-go/guide/commit/6d45d7fced7fa44457b477ece444b22b6da0ae65)
 
 ## 目录
