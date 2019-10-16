@@ -54,7 +54,9 @@ row before the </tbody></table> line.
 
 # Uber Go 语言编码规范
 
- [Uber](https://www.uber.com/) 是一家美国硅谷的科技公司，也是 Go 语言的早期 adopter. 其开源了很多 golang 项目，诸如被 Gopher 圈熟知的 [zap](https://github.com/uber-go/zap)、[jaeger](https://github.com/jaegertracing/jaeger) 等。2018 年年末 Uber 将内部的 [Go 风格规范](https://github.com/uber-go/guide) 开源到 github，经过一年的积累和更新，该规范已经初具规模，并受到广大 Gopher 的关注。本文是该规范的中文版本。本版本会根据原版实时更新。当前更新版本 (2019-10-15)(commit:d0f4f97ced3f0fbc67e6b64bb10a19530ea3bf2b)
+ [Uber](https://www.uber.com/) 是一家美国硅谷的科技公司，也是 Go 语言的早期 adopter. 其开源了很多 golang 项目，诸如被 Gopher 圈熟知的 [zap](https://github.com/uber-go/zap)、[jaeger](https://github.com/jaegertracing/jaeger) 等。2018 年年末 Uber 将内部的 [Go 风格规范](https://github.com/uber-go/guide) 开源到 github，经过一年的积累和更新，该规范已经初具规模，并受到广大 Gopher 的关注。本文是该规范的中文版本。本版本会根据原版实时更新。
+ 
+ 当前更新版本 (2019-10-17)[commit:#45](https://github.com/uber-go/guide/commit/6d45d7fced7fa44457b477ece444b22b6da0ae65)
 
 ## 目录
 
@@ -349,15 +351,15 @@ trips[0] = ...
 
 ```go
 type Stats struct {
-  sync.Mutex
+  mu sync.Mutex
 
   counters map[string]int
 }
 
 // Snapshot 返回当前状态。
 func (s *Stats) Snapshot() map[string]int {
-  s.Lock()
-  defer s.Unlock()
+  s.mu.Lock()
+  defer s.mu.Unlock()
 
   return s.counters
 }
@@ -370,14 +372,14 @@ snapshot := stats.Snapshot()
 
 ```go
 type Stats struct {
-  sync.Mutex
+  mu sync.Mutex
 
   counters map[string]int
 }
 
 func (s *Stats) Snapshot() map[string]int {
-  s.Lock()
-  defer s.Unlock()
+  s.mu.Lock()
+  defer s.mu.Unlock()
 
   result := make(map[string]int, len(s.counters))
   for k, v := range s.counters {
