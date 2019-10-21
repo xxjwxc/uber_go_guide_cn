@@ -58,7 +58,7 @@ row before the </tbody></table> line.
  
  ## 版本
  
- 当前更新版本:2019-10-20 版本地址：[commit:#53](https://github.com/uber-go/guide/commit/a80b760dd644171d0aea44ae24a1eb9b0f0a30d3)
+ 当前更新版本:2019-10-22 版本地址：[commit:#50](https://github.com/uber-go/guide/commit/7738ae5182715368c5e48a63ec54cc2e2be613a4)
 
 ## 目录
 
@@ -366,7 +366,7 @@ func (s *Stats) Snapshot() map[string]int {
   return s.counters
 }
 
-// snapshot 不再受到锁的保护
+// snapshot 不再受互斥锁保护，因此对 snapshot 的任何访问都将受到数据竞争的影响。影响 stats.counters
 snapshot := stats.Snapshot()
 ```
 
