@@ -366,7 +366,9 @@ func (s *Stats) Snapshot() map[string]int {
   return s.counters
 }
 
-// snapshot 不再受互斥锁保护，因此对 snapshot 的任何访问都将受到数据竞争的影响。影响 stats.counters
+// snapshot 不再受互斥锁保护
+// 因此对 snapshot 的任何访问都将受到数据竞争的影响
+// 影响 stats.counters
 snapshot := stats.Snapshot()
 ```
 
