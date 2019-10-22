@@ -58,7 +58,9 @@ row before the </tbody></table> line.
  
  ## 版本
  
- 当前更新版本:2019-10-22 版本地址：[commit:#50](https://github.com/uber-go/guide/commit/7738ae5182715368c5e48a63ec54cc2e2be613a4)
+  - 当前更新版本:2019-10-22 版本地址：[commit:#58](https://github.com/uber-go/guide/commit/5980baab7ebc59ba59eac21eaedced263a79729a)
+  - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
+  - Please feel free to fork and PR if you find any updates, issues or improvement.
 
 ## 目录
 
@@ -80,6 +82,7 @@ row before the </tbody></table> line.
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
 - [规范](#规范)
+  - [一致性](#一致性)
   - [相似的声明放在一组](#相似的声明放在一组)
   - [import 组内的包导入顺序](#import-组内的包导入顺序)
   - [包名](#包名)
@@ -1002,6 +1005,19 @@ BenchmarkGood-4  500000000   3.25 ns/op
 </tbody></table>
 
 ## 规范
+
+### 一致性
+
+本文中概述的一些标准都是客观性的评估,是根据场景、上下文、或者主观性的判断;
+
+但是最重要的是, **保持一致**.
+
+一致性的代码更容易维护、是更合理的、需要更少的学习成本、并且随着新的约定出现或者出现错误后更容易迁移、更新、修复 bug
+
+相反，一个单一的代码库会导致维护成本开销、不确定性和认知偏差。所有这些都会直接导致速度降低、
+代码审查痛苦、而且增加 bug 数量
+
+将这些标准应用于代码库时，建议在 package（或更大）级别进行更改，子包级别的应用程序通过将多个样式引入到同一代码中，违反了上述关注点。
 
 ### 相似的声明放在一组
 
