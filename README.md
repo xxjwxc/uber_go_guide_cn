@@ -81,6 +81,7 @@ row before the </tbody></table> line.
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
+  - [尽量初始化时指定 Map 容量](#尽量初始化时指定-Map-容量)
 - [规范](#规范)
   - [一致性](#一致性)
   - [相似的声明放在一组](#相似的声明放在一组)
@@ -1000,6 +1001,56 @@ BenchmarkBad-4   50000000   22.2 ns/op
 ```
 BenchmarkGood-4  500000000   3.25 ns/op
 ```
+
+</td></tr>
+</tbody></table>
+
+### 尽量初始化时指定 Map 容量
+
+在尽可能的情况下,在使用 `make()` 初始化的时候提供容量信息
+
+```go
+make(map[T1]T2, hint)
+```
+
+为 `make()` 提供 容量（`hint`） 信息尝试在初始化时调整 map 大小,
+这减少了在将元素添加到 map 时增长 map 和 分配(`allocations`) 的开销
+注意，map 不能保证分配 hint 个容量(`hint`) ,因此，即使提供了容量(`hint`),添加元素任然可以进行分配。 
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+m := make(map[string]os.FileInfo)
+
+files, _ := ioutil.ReadDir("./files")
+for _, f := range files {
+    m[f.Name()] = f
+}
+```
+
+</td><td>
+
+```go
+
+files, _ := ioutil.ReadDir("./files")
+
+m := make(map[string]os.FileInfo, len(files))
+for _, f := range files {
+    m[f.Name()] = f
+}
+```
+
+</td></tr>
+<tr><td>
+
+`m` 是在没有大小提示的情况下创建的； 在运行时可能会有更多分配。
+
+</td><td>
+
+`m` 是有大小提示创建的；在运行时可能会有更少的分配。
 
 </td></tr>
 </tbody></table>
