@@ -70,7 +70,7 @@ row before the </tbody></table> line.
   - [接收器 (receiver) 与接口](#接收器-receiver-与接口)
   - [零值 Mutex 是有效的](#零值-Mutex-是有效的)
   - [在边界处拷贝 Slices 和 Maps](#在边界处拷贝-Slices-和-Maps)
-  - [使用 defer 做清理](#使用-defer-做清理)
+  - [使用 defer 释放资源](#使用-defer-释放资源)
   - [Channel 的 size 要么是 1，要么是无缓冲的](#Channel-的-size-要么是-1要么是无缓冲的)
   - [枚举从 1 开始](#枚举从-1-开始)
   - [错误类型](#错误类型)
@@ -85,7 +85,7 @@ row before the </tbody></table> line.
 - [规范](#规范)
   - [一致性](#一致性)
   - [相似的声明放在一组](#相似的声明放在一组)
-  - [import 组内的包导入顺序](#import-组内的包导入顺序)
+  - [import 分组](#import-分组)
   - [包名](#包名)
   - [函数名](#函数名)
   - [导入别名](#导入别名)
@@ -208,10 +208,7 @@ i = s2Ptr
 //   i = s2Val
 ```
 
-[Effective Go] 中有一段关于 [pointers vs. values] 的精彩讲解。
-
-  [Effective Go]:https://golang.org/doc/effective_go.html
-  [Pointers vs. Values]: https://golang.org/doc/effective_go.html#pointers_vs_values
+[Effective Go](https://golang.org/doc/effective_go.html) 中有一段关于 [pointers vs. values](https://golang.org/doc/effective_go.html#pointers_vs_values) 的精彩讲解。
 
 ### 零值 Mutex 是有效的
 
@@ -403,9 +400,9 @@ snapshot := stats.Snapshot()
 </td></tr>
 </tbody></table>
 
-### 使用 defer 做清理
+### 使用 defer 释放资源
 
-使用 defer 清理资源，诸如文件和锁。
+使用 defer 释放资源，诸如文件和锁。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1206,12 +1203,12 @@ func f() string {
 </td></tr>
 </tbody></table>
 
-### import 组内的包导入顺序
+### import 分组
 
-应该有两类导入组：
+导入应该分为两组：
 
 - 标准库
-- 其他一切
+- 其他库
 
 默认情况下，这是 goimports 应用的分组。
 
