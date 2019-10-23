@@ -58,7 +58,7 @@ row before the </tbody></table> line.
  
  ## 版本
  
-  - 当前更新版本：2019-10-23 版本地址：[commit:#55~#61](https://github.com/uber-go/guide/commit/33e7d1ecb7bed88a9d498169913b5d5c149c738a)
+  - 当前更新版本：2019-10-24 版本地址：[commit:#55~#61](https://github.com/uber-go/guide/commit/33e7d1ecb7bed88a9d498169913b5d5c149c738a)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -102,7 +102,7 @@ row before the </tbody></table> line.
   - [避免参数语义不明确（Avoid Naked Parameters）](#避免参数语义不明确Avoid-Naked-Parameters)
   - [使用原始字符串字面值，避免转义](#使用原始字符串字面值避免转义)
   - [初始化 Struct 引用](#初始化-Struct-引用)
-  - [Initializing Maps](#initializing-maps)
+  - [初始化 Maps](#初始化-maps)
   - [字符串 string format ](#字符串-string-format )
   - [命名 Printf 样式的函数](#命名-Printf-样式的函数)
 - [编程模式](#编程模式)
@@ -1905,12 +1905,10 @@ sptr := &T{Name: "bar"}
 </td></tr>
 </tbody></table>
 
-### Initializing Maps
+### 初始化 Maps
 
-Prefer `make(..)` for empty maps, and maps populated
-programmatically. This makes map initialization visually
-distinct from declaration, and it makes it easy to add size
-hints later if available.
+对于空 map 请使用 `make(..)` 初始化， 并且 map 是通过编程方式填充的。
+这使得 map 初始化在表现上不同于声明，并且它还可以方便地在 make 后添加大小提示。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1919,8 +1917,8 @@ hints later if available.
 
 ```go
 var (
-  // m1 is safe to read and write;
-  // m2 will panic on writes.
+  // m1 读写安全;
+  // m2 在写入时会 panic
   m1 = map[T1]T2{}
   m2 map[T1]T2
 )
@@ -1930,8 +1928,8 @@ var (
 
 ```go
 var (
-  // m1 is safe to read and write;
-  // m2 will panic on writes.
+  // m1 读写安全;
+  // m2 在写入时会 panic
   m1 = make(map[T1]T2)
   m2 map[T1]T2
 )
@@ -1940,22 +1938,20 @@ var (
 </td></tr>
 <tr><td>
 
-Declaration and initialization are visually similar.
+声明和初始化看起来非常相似的。
 
 </td><td>
 
-Declaration and initialization are visually distinct.
+声明和初始化看起来差别非常大。
 
 </td></tr>
 </tbody></table>
 
-Where possible, provide capacity hints when initializing
-maps with `make()`. See
-[Prefer Specifying Map Capacity Hints](#prefer-specifying-map-capacity-hints)
-for more information.
+在尽可能的情况下，请在初始化时提供 map 容量大小，详细请看 [尽量初始化时指定 Map 容量](#尽量初始化时指定-Map-容量)。
 
-On the other hand, if the map holds a fixed list of elements,
-use map literals to initialize the map.
+
+另外，如果 map 包含固定的元素列表，则使用 map literals(map 初始化列表) 初始化映射。
+
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1982,9 +1978,9 @@ m := map[T1]T2{
 </td></tr>
 </tbody></table>
 
-The basic rule of thumb is to use map literals when adding a fixed set of
-elements at initialization time, otherwise use `make` (and specify a size hint
-if available).
+基本的经验法则是在初始化时添加一组固定的元素时使用映射文本，否则使用“make”（如果可用，请指定大小提示）。
+
+基本准则是：在初始化时使用 map 初始化列表 来添加一组固定的元素。否则使用 `make` (如果可以，请尽量指定 map 容量)。
 
 ### 字符串 string format
 
