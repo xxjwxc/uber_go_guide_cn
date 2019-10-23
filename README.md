@@ -58,7 +58,7 @@ row before the </tbody></table> line.
  
  ## 版本
  
-  - 当前更新版本:2019-10-22 版本地址：[commit:#58](https://github.com/uber-go/guide/commit/5980baab7ebc59ba59eac21eaedced263a79729a)
+  - 当前更新版本:2019-10-23 版本地址：[commit:#61](https://github.com/uber-go/guide/commit/2db016419be2225804c7eb5ac890d793362b6363)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -102,6 +102,7 @@ row before the </tbody></table> line.
   - [避免参数语义不明确（Avoid Naked Parameters）](#避免参数语义不明确Avoid-Naked-Parameters)
   - [使用原始字符串字面值,避免转义](#使用原始字符串字面值避免转义)
   - [初始化 Struct 引用](#初始化-Struct-引用)
+  - [Initializing Maps](#initializing-maps)
   - [字符串 string format ](#字符串-string-format )
   - [命名 Printf 样式的函数](#命名-Printf-样式的函数)
 - [编程模式](#编程模式)
@@ -1902,6 +1903,88 @@ sptr := &T{Name: "bar"}
 
 </td></tr>
 </tbody></table>
+
+### Initializing Maps
+
+Prefer `make(..)` for empty maps, and maps populated
+programmatically. This makes map initialization visually
+distinct from declaration, and it makes it easy to add size
+hints later if available.
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+var (
+  // m1 is safe to read and write;
+  // m2 will panic on writes.
+  m1 = map[T1]T2{}
+  m2 map[T1]T2
+)
+```
+
+</td><td>
+
+```go
+var (
+  // m1 is safe to read and write;
+  // m2 will panic on writes.
+  m1 = make(map[T1]T2)
+  m2 map[T1]T2
+)
+```
+
+</td></tr>
+<tr><td>
+
+Declaration and initialization are visually similar.
+
+</td><td>
+
+Declaration and initialization are visually distinct.
+
+</td></tr>
+</tbody></table>
+
+Where possible, provide capacity hints when initializing
+maps with `make()`. See
+[Prefer Specifying Map Capacity Hints](#prefer-specifying-map-capacity-hints)
+for more information.
+
+On the other hand, if the map holds a fixed list of elements,
+use map literals to initialize the map.
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+m := make(map[T1]T2, 3)
+m[k1] = v1
+m[k2] = v2
+m[k3] = v3
+```
+
+</td><td>
+
+```go
+m := map[T1]T2{
+  k1: v1,
+  k2: v2,
+  k3: v3,
+}
+```
+
+</td></tr>
+</tbody></table>
+
+
+The basic rule of thumb is to use map literals when adding a fixed set of
+elements at initialization time, otherwise use `make` (and specify a size hint
+if available).
 
 ### 字符串 string format
 
