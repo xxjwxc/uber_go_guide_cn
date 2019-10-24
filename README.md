@@ -1014,7 +1014,7 @@ make(map[T1]T2, hint)
 
 为 `make()` 提供容量信息（hint）尝试在初始化时调整 map 大小，
 这减少了在将元素添加到 map 时增长和分配的开销。
-注意，map 不能保证分配 hint 个容量。因此，即使提供了容量，添加元素任然可以进行分配。 
+注意，map 不能保证分配 hint 个容量。因此，即使提供了容量，添加元素仍然可以进行分配。 
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
