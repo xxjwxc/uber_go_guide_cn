@@ -213,7 +213,7 @@ i = s2Ptr
 
 ### 零值 Mutex 是有效的
 
-sync.Mutex 和 sync.RWMutex 是有效的。因此你几乎不需要一个指向 mutex 的指针。
+零值 `sync.Mutex` 和 `sync.RWMutex` 是有效的。所以指向 mutex 的指针基本是不必要的。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
