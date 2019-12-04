@@ -58,7 +58,7 @@ row before the </tbody></table> line.
  
  ## 版本
  
-  - 当前更新版本：2019-11-13 版本地址：[commit:#71](https://github.com/uber-go/guide/commit/85bf203f4371a8ae9e5e9a4d52ea77b17ca04ae6)
+  - 当前更新版本：2019-11-13 版本地址：[commit:#73](https://github.com/uber-go/guide/commit/33388e21572876d9bda25895db48a1da9b0304f5)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -78,6 +78,7 @@ row before the </tbody></table> line.
   - [处理类型断言失败](#处理类型断言失败)
   - [不要 panic](#不要-panic)
   - [使用 go.uber.org/atomic](#使用-gouberorgatomic)
+  - [避免可变全局变量](#避免可变全局变量)
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
@@ -915,6 +916,73 @@ func (f *foo) start() {
 
 func (f *foo) isRunning() bool {
   return f.running.Load()
+}
+```
+
+</td></tr>
+</tbody></table>
+
+### 避免可变全局变量
+
+使用选择依赖注入方式避免改变全局变量。 
+此方式适用于函数指针
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+// sign.go
+var _timeNow = time.Now
+func sign(msg string) string {
+  now := _timeNow()
+  return signWithTime(msg, now)
+}
+```
+
+</td><td>
+
+```go
+// sign.go
+type signer struct {
+  now func() time.Time
+}
+func newSigner() *signer {
+  return &signer{
+    now: time.Now,
+  }
+}
+func (s *signer) Sign(msg string) string {
+  now := s.now()
+  return signWithTime(msg, now)
+}
+```
+</td></tr>
+<tr><td>
+
+```go
+// sign_test.go
+func TestSign(t *testing.T) {
+  oldTimeNow := _timeNow
+  _timeNow = func() time.Time {
+    return someFixedTime
+  }
+  defer func() { _timeNow = oldTimeNow }()
+  assert.Equal(t, want, sign(give))
+}
+```
+
+</td><td>
+
+```go
+// sign_test.go
+func TestSigner(t *testing.T) {
+  s := newSigner()
+  s.now = func() time.Time {
+    return someFixedTime
+  }
+  assert.Equal(t, want, s.Sign(give))
 }
 ```
 
