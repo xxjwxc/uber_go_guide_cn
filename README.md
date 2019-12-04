@@ -58,7 +58,7 @@ row before the </tbody></table> line.
  
  ## 版本
  
-  - 当前更新版本：2019-11-13 版本地址：[commit:#73](https://github.com/uber-go/guide/commit/33388e21572876d9bda25895db48a1da9b0304f5)
+  - 当前更新版本：2019-12-04 版本地址：[commit:#73](https://github.com/uber-go/guide/commit/33388e21572876d9bda25895db48a1da9b0304f5)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
