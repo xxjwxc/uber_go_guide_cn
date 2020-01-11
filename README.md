@@ -60,6 +60,9 @@ change.md
 # 2019-11-26
 - 添加针对全局变量变异的指导。
 
+# 2020-01-11
+- 为`open（..）`调用添加缺少的参数。
+
 -->
 
 # [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
@@ -72,7 +75,7 @@ change.md
  
  ## 版本
  
-  - 当前更新版本：2019-12-18 版本地址：[commit:#77](https://github.com/uber-go/guide/commit/1f4b461e211e809fa2454f9d68f87ed62f3ea0cb)
+  - 当前更新版本：2020-01-11 版本地址：[commit:#81](https://github.com/uber-go/guide/commit/d61205f4e561965c64c7dbe8403cb0f6f34c58bc)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -627,7 +630,7 @@ func open(file string) error {
 }
 
 func use() {
-  if err := open(); err != nil {
+  if err := open("testfile.txt"); err != nil {
     if strings.Contains(err.Error(), "not found") {
       // handle
     } else {
@@ -653,7 +656,7 @@ func open(file string) error {
 }
 
 func use() {
-  if err := open(); err != nil {
+  if err := open("testfile.txt"); err != nil {
     if _, ok := err.(errNotFound); ok {
       // handle
     } else {
@@ -2316,7 +2319,7 @@ type loggerOption struct {
 }
 
 func (l loggerOption) apply(opts *options) {
-  opts.Logger = l.Log
+  opts.logger = l.Log
 }
 
 func WithLogger(log *zap.Logger) Option {
