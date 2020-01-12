@@ -75,7 +75,7 @@ change.md
  
  ## 版本
  
-  - 当前更新版本：2020-01-11 版本地址：[commit:#81](https://github.com/uber-go/guide/commit/d61205f4e561965c64c7dbe8403cb0f6f34c58bc)
+  - 当前更新版本：2020-01-12 版本地址：[commit:#82](https://github.com/uber-go/guide/commit/79c56d7d389e6d281489dead4b45ee9e1f3dc58a)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
