@@ -91,7 +91,7 @@ change.md
   - [Channel 的 size 要么是 1，要么是无缓冲的](#Channel-的-size-要么是-1要么是无缓冲的)
   - [枚举从 1 开始](#枚举从-1-开始)
   - [错误类型](#错误类型)
-  - [错误包装 (Error Wrapping)](#错误包装-(Error-Wrapping))
+  - [错误包装 (Error Wrapping)](#错误包装-error-wrapping)
   - [处理类型断言失败](#处理类型断言失败)
   - [不要 panic](#不要-panic)
   - [使用 go.uber.org/atomic](#使用-gouberorgatomic)
