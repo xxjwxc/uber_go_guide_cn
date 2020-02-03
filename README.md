@@ -63,6 +63,10 @@ change.md
 # 2020-01-11
 - 为`open（..）`调用添加缺少的参数。
 
+# 2020-02-03
+- 使用 `"time"` 处理时间的建议
+- 添加有关在公共结构中嵌入类型的指导。
+
 -->
 
 # [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
@@ -90,14 +94,14 @@ change.md
   - [使用 defer 释放资源](#使用-defer-释放资源)
   - [Channel 的 size 要么是 1，要么是无缓冲的](#Channel-的-size-要么是-1要么是无缓冲的)
   - [枚举从 1 开始](#枚举从-1-开始)
-  - [Use `"time"` to handle time](#use-time-to-handle-time)
+  - [使用 `"time"` 处理时间](#使用-`"time"`-处理时间)
   - [错误类型](#错误类型)
   - [错误包装 (Error Wrapping)](#错误包装-error-wrapping)
   - [处理类型断言失败](#处理类型断言失败)
   - [不要 panic](#不要-panic)
   - [使用 go.uber.org/atomic](#使用-gouberorgatomic)
   - [避免可变全局变量](#避免可变全局变量)
-  - [Avoid Embedding Types in Public Structs](#avoid-embedding-types-in-public-structs)
+  - [避免在公共结构中嵌入类型](#避免在公共结构中嵌入类型)
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
@@ -545,29 +549,25 @@ const (
 // LogToStdout=0, LogToFile=1, LogToRemote=2
 ```
 
-### Use `"time"` to handle time
+### 使用 `"time"` 处理时间
 
-Time is complicated. Incorrect assumptions often made about time include the
-following.
+时间处理很复杂。关于时间的错误假设通常包括以下几点。
 
-1. A day has 24 hours
-2. An hour has 60 minutes
-3. A week has 7 days
-4. A year has 365 days
-5. [And a lot more](https://infiniteundo.com/post/25326999628/falsehoods-programmers-believe-about-time)
+1. 一天有 24 小时
+2. 一小时有 60 分钟
+3. 一周有七天
+4. 一年 365 天
+5. [还有更多](https://infiniteundo.com/post/25326999628/falsehoods-programmers-believe-about-time)
 
-For example, *1* means that adding 24 hours to a time instant will not always
-yield a new calendar day.
+例如，*1* 表示在一个时间点上加上 24 小时并不总是产生一个新的日历日。
 
-Therefore, always use the [`"time"`] package when dealing with time because it
-helps deal with these incorrect assumptions in a safer, more accurate manner.
+因此，在处理时间时始终使用 [`"time"`] 包，因为它有助于以更安全、更准确的方式处理这些不正确的假设。
 
   [`"time"`]: https://golang.org/pkg/time/
 
-#### Use `time.Time` for instants of time
+#### 使用 `time.Time` 表达瞬时时间
 
-Use [`time.Time`] when dealing with instants of time, and the methods on
-`time.Time` when comparing, adding, or subtracting time.
+在处理时间的瞬间时使用 [`time.time`]，在比较、添加或减去时间时使用 `time.Time` 中的方法。
 
   [`time.Time`]: https://golang.org/pkg/time/#Time
 
@@ -593,9 +593,9 @@ func isActive(now, start, stop time.Time) bool {
 </td></tr>
 </tbody></table>
 
-#### Use `time.Duration` for periods of time
+#### 使用 `time.Duration` 表达时间段
 
-Use [`time.Duration`] when dealing with periods of time.
+在处理时间段时使用 [`time.Duration`] .
 
   [`time.Duration`]: https://golang.org/pkg/time/#Duration
 
@@ -611,7 +611,7 @@ func poll(delay int) {
     time.Sleep(time.Duration(delay) * time.Millisecond)
   }
 }
-poll(10) // was it seconds or milliseconds?
+poll(10) // 是几秒钟还是几毫秒?
 ```
 
 </td><td>
@@ -629,11 +629,7 @@ poll(10*time.Second)
 </td></tr>
 </tbody></table>
 
-Going back to the example of adding 24 hours to a time instant, the method we
-use to add time depends on intent. If we want the same time of the day, but on
-the next calendar day, we should use [`Time.AddDate`]. However, if we want an
-instant of time guaranteed to be 24 hours after the previous time, we should
-use [`Time.Add`].
+回到第一个例子，在一个时间瞬间加上 24 小时，我们用于添加时间的方法取决于意图。如果我们想要下一个日历日(当前天的下一天)的同一个时间点，我们应该使用 [`Time.AddDate`]。但是，如果我们想保证某一时刻比前一时刻晚 24 小时，我们应该使用 [`Time.Add`]。
 
   [`Time.AddDate`]: https://golang.org/pkg/time/#Time.AddDate
   [`Time.Add`]: https://golang.org/pkg/time/#Time.Add
@@ -643,19 +639,14 @@ newDay := t.AddDate(0 /* years */, 0, /* months */, 1 /* days */)
 maybeNewDay := t.Add(24 * time.Hour)
 ```
 
-#### Use `time.Time` and `time.Duration` with external systems
+#### 对外部系统使用 `time.Time` 和 `time.Duration` 
 
-Use `time.Duration` and `time.Time` in interactions with external systems when
-possible. For example:
+尽可能在与外部系统的交互中使用 `time.Duration` 和 `time.Time` 例如 :
 
-- Command-line flags: [`flag`] supports `time.Duration` via
-  [`time.ParseDuration`]
-- JSON: [`encoding/json`] supports encoding `time.Time` as an [RFC 3339]
-  string via its [`UnmarshalJSON` method]
-- SQL: [`database/sql`] supports converting `DATETIME` or `TIMESTAMP` columns
-  into `time.Time` and back if the underlying driver supports it
-- YAML: [`gopkg.in/yaml.v2`] supports `time.Time` as an [RFC 3339] string, and
-  `time.Duration` via [`time.ParseDuration`].
+- Command-line 标志: [`flag`] 通过 [`time.ParseDuration`] 支持 `time.Duration`
+- JSON: [`encoding/json`] 通过其 [`UnmarshalJSON` method] 方法支持将 `time.Time` 编码为 [RFC 3339] 字符串
+- SQL: [`database/sql`] 支持将 `DATETIME` 或 `TIMESTAMP` 列转换为 `time.Time`，如果底层驱动程序支持则返回
+- YAML: [`gopkg.in/yaml.v2`] 支持将 `time.Time` 作为 [RFC 3339] 字符串，并通过 [`time.ParseDuration`] 支持 `time.Duration`。
 
   [`flag`]: https://golang.org/pkg/flag/
   [`time.ParseDuration`]: https://golang.org/pkg/time/#ParseDuration
@@ -665,11 +656,9 @@ possible. For example:
   [`database/sql`]: https://golang.org/pkg/database/sql/
   [`gopkg.in/yaml.v2`]: https://godoc.org/gopkg.in/yaml.v2
 
-When it is not possible to use `time.Duration` in these interactions, use
-`int` or `float64` and include the unit in the name of the field.
+当不能在这些交互中使用 `time.Duration` 时，请使用 `int` 或 `float64`，并在字段名称中包含单位。
 
-For example, since `encoding/json` does not support `time.Duration`, the unit
-is included in the name of the field.
+例如，由于 `encoding/json` 不支持 `time.Duration`，因此该单位包含在字段的名称中。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -695,19 +684,12 @@ type Config struct {
 </td></tr>
 </tbody></table>
 
-When it is not possible to use `time.Time` in these interactions, unless an
-alternative is agreed upon, use `string` and format timestamps as defined in
-[RFC 3339]. This format is used by default by [`Time.UnmarshalText`] and is
-available for use in `Time.Format` and `time.Parse` via [`time.RFC3339`].
+当在这些交互中不能使用 `time.Time` 时，除非达成一致，否则使用 `string` 和 [RFC 3339] 中定义的格式时间戳。默认情况下，[`Time.UnmarshalText`] 使用此格式，并可通过 [`time.RFC3339`] 在 `Time.Format` 和 `time.Parse` 中使用。
 
   [`Time.UnmarshalText`]: https://golang.org/pkg/time/#Time.UnmarshalText
   [`time.RFC3339`]: https://golang.org/pkg/time/#RFC3339
 
-Although this tends to not be a problem in practice, keep in mind that the
-`"time"` package does not support parsing timestamps with leap seconds
-([8728]), nor does it account for leap seconds in calculations ([15190]). If
-you compare two instants of time, the difference will not include the leap
-seconds that may have occurred between those two instants.
+尽管这在实践中并不成问题，但请记住，`"time"` 包不支持解析闰秒时间戳（[8728]），也不在计算中考虑闰秒（[15190]）。如果您比较两个时间瞬间，则差异将不包括这两个瞬间之间可能发生的闰秒。
 
   [8728]: https://github.com/golang/go/issues/8728
   [15190]: https://github.com/golang/go/issues/15190
@@ -1175,24 +1157,20 @@ func TestSigner(t *testing.T) {
 </td></tr>
 </tbody></table>
 
-### Avoid Embedding Types in Public Structs
+### 避免在公共结构中嵌入类型
 
-These embedded types leak implementation details, inhibit type evolution, and
-obscure documentation.
+这些嵌入的类型泄漏实现细节、禁止类型演化和模糊的文档。
 
-Assuming you have implemented a variety of list types using a shared
-`AbstractList`, avoid embedding the `AbstractList` in your concrete list
-implementations.
-Instead, hand-write only the methods to your concrete list that will delegate
-to the abstract list.
+假设您使用共享的 `AbstractList` 实现了多种列表类型，请避免在具体的列表实现中嵌入 `AbstractList`。
+相反，只需手动将方法写入具体的列表，该列表将委托给抽象列表。
 
 ```go
 type AbstractList struct {}
-// Add adds an entity to the list.
+// 添加将实体添加到列表中。
 func (l *AbstractList) Add(e Entity) {
   // ...
 }
-// Remove removes an entity from the list.
+// 移除从列表中移除实体。
 func (l *AbstractList) Remove(e Entity) {
   // ...
 }
@@ -1204,7 +1182,7 @@ func (l *AbstractList) Remove(e Entity) {
 <tr><td>
 
 ```go
-// ConcreteList is a list of entities.
+// ConcreteList 是一个实体列表。
 type ConcreteList struct {
   *AbstractList
 }
@@ -1213,15 +1191,15 @@ type ConcreteList struct {
 </td><td>
 
 ```go
-// ConcreteList is a list of entities.
+// ConcreteList 是一个实体列表。
 type ConcreteList struct {
   list *AbstractList
 }
-// Add adds an entity to the list.
+// 添加将实体添加到列表中。
 func (l *ConcreteList) Add(e Entity) {
   return l.list.Add(e)
 }
-// Remove removes an entity from the list.
+// 移除从列表中移除实体。
 func (l *ConcreteList) Remove(e Entity) {
   return l.list.Remove(e)
 }
@@ -1230,24 +1208,19 @@ func (l *ConcreteList) Remove(e Entity) {
 </td></tr>
 </tbody></table>
 
-Go allows [type embedding] as a compromise between inheritance and composition.
-The outer type gets implicit copies of the embedded type's methods.
-These methods, by default, delegate to the same method of the embedded
-instance.
+Go 允许 [类型嵌入] 作为继承和组合之间的折衷。
+外部类型获取嵌入类型的方法的隐式副本。
+默认情况下，这些方法委托给嵌入实例的同一方法。
 
-  [type embedding]: https://golang.org/doc/effective_go.html#embedding
+  [类型嵌入]: https://golang.org/doc/effective_go.html#embedding
 
-The struct also gains a field by the same name as the type.
-So, if the embedded type is public, the field is public.
-To maintain backward compatibility, every future version of the outer type must
-keep the embedded type.
+结构还获得与类型同名的字段。
+所以，如果嵌入的类型是 public，那么字段是 public。为了保持向后兼容性，外部类型的每个未来版本都必须保留嵌入类型。
 
-An embedded type is rarely necessary.
-It is a convenience that helps you avoid writing tedious delegate methods.
+很少需要嵌入类型。
+这是一种方便，可以帮助您避免编写冗长的委托方法。
 
-Even embedding a compatible AbstractList *interface*, instead of the struct,
-would offer the developer more flexibility to change in the future, but still
-leak the detail that the concrete lists use an abstract implementation.
+即使嵌入兼容的抽象列表 *interface*，而不是结构体，这将为开发人员提供更大的灵活性来改变未来，但仍然泄露了具体列表使用抽象实现的细节。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1255,13 +1228,12 @@ leak the detail that the concrete lists use an abstract implementation.
 <tr><td>
 
 ```go
-// AbstractList is a generalized implementation
-// for various kinds of lists of entities.
+// AbstractList 是各种实体列表的通用实现。
 type AbstractList interface {
   Add(Entity)
   Remove(Entity)
 }
-// ConcreteList is a list of entities.
+// ConcreteList 是一个实体列表。
 type ConcreteList struct {
   AbstractList
 }
@@ -1270,15 +1242,15 @@ type ConcreteList struct {
 </td><td>
 
 ```go
-// ConcreteList is a list of entities.
+// ConcreteList 是一个实体列表。
 type ConcreteList struct {
   list *AbstractList
 }
-// Add adds an entity to the list.
+// 添加将实体添加到列表中。
 func (l *ConcreteList) Add(e Entity) {
   return l.list.Add(e)
 }
-// Remove removes an entity from the list.
+// 移除从列表中移除实体。
 func (l *ConcreteList) Remove(e Entity) {
   return l.list.Remove(e)
 }
@@ -1287,19 +1259,13 @@ func (l *ConcreteList) Remove(e Entity) {
 </td></tr>
 </tbody></table>
 
-Either with an embedded struct or an embedded interface, the embedded type
-places limits on the evolution of the type.
+无论是使用嵌入式结构还是使用嵌入式接口，嵌入式类型都会限制类型的演化.
 
-- Adding methods to an embedded interface is a breaking change.
-- Removing methods from an embedded struct is a breaking change.
-- Removing the embedded type is a breaking change.
-- Replacing the embedded type, even with an alternative that satisfies the same
-  interface, is a breaking change.
+- 向嵌入式接口添加方法是一个破坏性的改变。
+- 删除嵌入类型是一个破坏性的改变。
+- 即使使用满足相同接口的替代方法替换嵌入类型，也是一个破坏性的改变。
 
-Although writing these delegate methods is tedious, the additional effort hides
-an implementation detail, leaves more opportunities for change, and also
-eliminates indirection for discovering the full List interface in
-documentation.
+尽管编写这些委托方法是乏味的，但是额外的工作隐藏了实现细节，留下了更多的更改机会，还消除了在文档中发现完整列表接口的间接性操作。
 
 ## 性能
 
