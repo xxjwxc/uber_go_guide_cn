@@ -75,7 +75,7 @@ change.md
  
  ## 版本
  
-  - 当前更新版本：2020-01-12 版本地址：[commit:#82](https://github.com/uber-go/guide/commit/79c56d7d389e6d281489dead4b45ee9e1f3dc58a)
+  - 当前更新版本：2020-02-03 版本地址：[commit:#76](https://github.com/uber-go/guide/commit/06c04b704ba42f5d731932c8e429d827e6e09a0a)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -90,12 +90,14 @@ change.md
   - [使用 defer 释放资源](#使用-defer-释放资源)
   - [Channel 的 size 要么是 1，要么是无缓冲的](#Channel-的-size-要么是-1要么是无缓冲的)
   - [枚举从 1 开始](#枚举从-1-开始)
+  - [Use `"time"` to handle time](#use-time-to-handle-time)
   - [错误类型](#错误类型)
   - [错误包装 (Error Wrapping)](#错误包装-error-wrapping)
   - [处理类型断言失败](#处理类型断言失败)
   - [不要 panic](#不要-panic)
   - [使用 go.uber.org/atomic](#使用-gouberorgatomic)
   - [避免可变全局变量](#避免可变全局变量)
+  - [Avoid Embedding Types in Public Structs](#avoid-embedding-types-in-public-structs)
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
@@ -542,6 +544,173 @@ const (
 
 // LogToStdout=0, LogToFile=1, LogToRemote=2
 ```
+
+### Use `"time"` to handle time
+
+Time is complicated. Incorrect assumptions often made about time include the
+following.
+
+1. A day has 24 hours
+2. An hour has 60 minutes
+3. A week has 7 days
+4. A year has 365 days
+5. [And a lot more](https://infiniteundo.com/post/25326999628/falsehoods-programmers-believe-about-time)
+
+For example, *1* means that adding 24 hours to a time instant will not always
+yield a new calendar day.
+
+Therefore, always use the [`"time"`] package when dealing with time because it
+helps deal with these incorrect assumptions in a safer, more accurate manner.
+
+  [`"time"`]: https://golang.org/pkg/time/
+
+#### Use `time.Time` for instants of time
+
+Use [`time.Time`] when dealing with instants of time, and the methods on
+`time.Time` when comparing, adding, or subtracting time.
+
+  [`time.Time`]: https://golang.org/pkg/time/#Time
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+func isActive(now, start, stop int) bool {
+  return start <= now && now < stop
+}
+```
+
+</td><td>
+
+```go
+func isActive(now, start, stop time.Time) bool {
+  return (start.Before(now) || start.Equal(now)) && now.Before(stop)
+}
+```
+
+</td></tr>
+</tbody></table>
+
+#### Use `time.Duration` for periods of time
+
+Use [`time.Duration`] when dealing with periods of time.
+
+  [`time.Duration`]: https://golang.org/pkg/time/#Duration
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+func poll(delay int) {
+  for {
+    // ...
+    time.Sleep(time.Duration(delay) * time.Millisecond)
+  }
+}
+poll(10) // was it seconds or milliseconds?
+```
+
+</td><td>
+
+```go
+func poll(delay time.Duration) {
+  for {
+    // ...
+    time.Sleep(delay)
+  }
+}
+poll(10*time.Second)
+```
+
+</td></tr>
+</tbody></table>
+
+Going back to the example of adding 24 hours to a time instant, the method we
+use to add time depends on intent. If we want the same time of the day, but on
+the next calendar day, we should use [`Time.AddDate`]. However, if we want an
+instant of time guaranteed to be 24 hours after the previous time, we should
+use [`Time.Add`].
+
+  [`Time.AddDate`]: https://golang.org/pkg/time/#Time.AddDate
+  [`Time.Add`]: https://golang.org/pkg/time/#Time.Add
+
+```go
+newDay := t.AddDate(0 /* years */, 0, /* months */, 1 /* days */)
+maybeNewDay := t.Add(24 * time.Hour)
+```
+
+#### Use `time.Time` and `time.Duration` with external systems
+
+Use `time.Duration` and `time.Time` in interactions with external systems when
+possible. For example:
+
+- Command-line flags: [`flag`] supports `time.Duration` via
+  [`time.ParseDuration`]
+- JSON: [`encoding/json`] supports encoding `time.Time` as an [RFC 3339]
+  string via its [`UnmarshalJSON` method]
+- SQL: [`database/sql`] supports converting `DATETIME` or `TIMESTAMP` columns
+  into `time.Time` and back if the underlying driver supports it
+- YAML: [`gopkg.in/yaml.v2`] supports `time.Time` as an [RFC 3339] string, and
+  `time.Duration` via [`time.ParseDuration`].
+
+  [`flag`]: https://golang.org/pkg/flag/
+  [`time.ParseDuration`]: https://golang.org/pkg/time/#ParseDuration
+  [`encoding/json`]: https://golang.org/pkg/encoding/json/
+  [RFC 3339]: https://tools.ietf.org/html/rfc3339
+  [`UnmarshalJSON` method]: https://golang.org/pkg/time/#Time.UnmarshalJSON
+  [`database/sql`]: https://golang.org/pkg/database/sql/
+  [`gopkg.in/yaml.v2`]: https://godoc.org/gopkg.in/yaml.v2
+
+When it is not possible to use `time.Duration` in these interactions, use
+`int` or `float64` and include the unit in the name of the field.
+
+For example, since `encoding/json` does not support `time.Duration`, the unit
+is included in the name of the field.
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+// {"interval": 2}
+type Config struct {
+  Interval int `json:"interval"`
+}
+```
+
+</td><td>
+
+```go
+// {"intervalMillis": 2000}
+type Config struct {
+  IntervalMillis int `json:"intervalMillis"`
+}
+```
+
+</td></tr>
+</tbody></table>
+
+When it is not possible to use `time.Time` in these interactions, unless an
+alternative is agreed upon, use `string` and format timestamps as defined in
+[RFC 3339]. This format is used by default by [`Time.UnmarshalText`] and is
+available for use in `Time.Format` and `time.Parse` via [`time.RFC3339`].
+
+  [`Time.UnmarshalText`]: https://golang.org/pkg/time/#Time.UnmarshalText
+  [`time.RFC3339`]: https://golang.org/pkg/time/#RFC3339
+
+Although this tends to not be a problem in practice, keep in mind that the
+`"time"` package does not support parsing timestamps with leap seconds
+([8728]), nor does it account for leap seconds in calculations ([15190]). If
+you compare two instants of time, the difference will not include the leap
+seconds that may have occurred between those two instants.
+
+  [8728]: https://github.com/golang/go/issues/8728
+  [15190]: https://github.com/golang/go/issues/15190
 
 <!-- TODO: section on String methods for enums -->
 
@@ -1005,6 +1174,132 @@ func TestSigner(t *testing.T) {
 
 </td></tr>
 </tbody></table>
+
+### Avoid Embedding Types in Public Structs
+
+These embedded types leak implementation details, inhibit type evolution, and
+obscure documentation.
+
+Assuming you have implemented a variety of list types using a shared
+`AbstractList`, avoid embedding the `AbstractList` in your concrete list
+implementations.
+Instead, hand-write only the methods to your concrete list that will delegate
+to the abstract list.
+
+```go
+type AbstractList struct {}
+// Add adds an entity to the list.
+func (l *AbstractList) Add(e Entity) {
+  // ...
+}
+// Remove removes an entity from the list.
+func (l *AbstractList) Remove(e Entity) {
+  // ...
+}
+```
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+// ConcreteList is a list of entities.
+type ConcreteList struct {
+  *AbstractList
+}
+```
+
+</td><td>
+
+```go
+// ConcreteList is a list of entities.
+type ConcreteList struct {
+  list *AbstractList
+}
+// Add adds an entity to the list.
+func (l *ConcreteList) Add(e Entity) {
+  return l.list.Add(e)
+}
+// Remove removes an entity from the list.
+func (l *ConcreteList) Remove(e Entity) {
+  return l.list.Remove(e)
+}
+```
+
+</td></tr>
+</tbody></table>
+
+Go allows [type embedding] as a compromise between inheritance and composition.
+The outer type gets implicit copies of the embedded type's methods.
+These methods, by default, delegate to the same method of the embedded
+instance.
+
+  [type embedding]: https://golang.org/doc/effective_go.html#embedding
+
+The struct also gains a field by the same name as the type.
+So, if the embedded type is public, the field is public.
+To maintain backward compatibility, every future version of the outer type must
+keep the embedded type.
+
+An embedded type is rarely necessary.
+It is a convenience that helps you avoid writing tedious delegate methods.
+
+Even embedding a compatible AbstractList *interface*, instead of the struct,
+would offer the developer more flexibility to change in the future, but still
+leak the detail that the concrete lists use an abstract implementation.
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+// AbstractList is a generalized implementation
+// for various kinds of lists of entities.
+type AbstractList interface {
+  Add(Entity)
+  Remove(Entity)
+}
+// ConcreteList is a list of entities.
+type ConcreteList struct {
+  AbstractList
+}
+```
+
+</td><td>
+
+```go
+// ConcreteList is a list of entities.
+type ConcreteList struct {
+  list *AbstractList
+}
+// Add adds an entity to the list.
+func (l *ConcreteList) Add(e Entity) {
+  return l.list.Add(e)
+}
+// Remove removes an entity from the list.
+func (l *ConcreteList) Remove(e Entity) {
+  return l.list.Remove(e)
+}
+```
+
+</td></tr>
+</tbody></table>
+
+Either with an embedded struct or an embedded interface, the embedded type
+places limits on the evolution of the type.
+
+- Adding methods to an embedded interface is a breaking change.
+- Removing methods from an embedded struct is a breaking change.
+- Removing the embedded type is a breaking change.
+- Replacing the embedded type, even with an alternative that satisfies the same
+  interface, is a breaking change.
+
+Although writing these delegate methods is tedious, the additional effort hides
+an implementation detail, leaves more opportunities for change, and also
+eliminates indirection for discovering the full List interface in
+documentation.
 
 ## 性能
 
