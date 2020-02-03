@@ -94,7 +94,7 @@ change.md
   - [使用 defer 释放资源](#使用-defer-释放资源)
   - [Channel 的 size 要么是 1，要么是无缓冲的](#Channel-的-size-要么是-1要么是无缓冲的)
   - [枚举从 1 开始](#枚举从-1-开始)
-  - [使用 `"time"` 处理时间](#使用-`"time"`-处理时间)
+  - [使用 `"time"` 处理时间](#使用-time-处理时间)
   - [错误类型](#错误类型)
   - [错误包装 (Error Wrapping)](#错误包装-error-wrapping)
   - [处理类型断言失败](#处理类型断言失败)
@@ -549,7 +549,7 @@ const (
 // LogToStdout=0, LogToFile=1, LogToRemote=2
 ```
 
-### 使用 `"time"` 处理时间
+### 使用 time 处理时间
 
 时间处理很复杂。关于时间的错误假设通常包括以下几点。
 
