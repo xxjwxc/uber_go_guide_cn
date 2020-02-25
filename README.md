@@ -67,6 +67,9 @@ change.md
 - 使用 `"time"` 处理时间的建议
 - 添加有关在公共结构中嵌入类型的指导。
 
+# 2020-02-25
+- 添加有关接口验证是否符合编译时检查的指导。
+
 -->
 
 # [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
@@ -88,6 +91,7 @@ change.md
 - [介绍](#介绍)
 - [指导原则](#指导原则)
   - [指向 interface 的指针](#指向-interface-的指针)
+  - [Interface 合理性验证](#interface-合理性验证)
   - [接收器 (receiver) 与接口](#接收器-receiver-与接口)
   - [零值 Mutex 是有效的](#零值-Mutex-是有效的)
   - [在边界处拷贝 Slices 和 Maps](#在边界处拷贝-Slices-和-Maps)
@@ -169,6 +173,68 @@ change.md
 2. 数据指针。如果存储的数据是指针，则直接存储。如果存储的数据是一个值，则存储指向该值的指针。
 
 如果希望接口方法修改基础数据，则必须使用指针传递。
+
+### Interface 合理性验证
+
+在编译时验证接口的符合性。这包括：
+
+- 将实现特定接口所需的导出类型作为其 API 的一部分
+- 导出或未导出的类型是实现同一接口的类型集合的一部分
+- 其他违反接口的情况会破坏用户。
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+type Handler struct {
+  // ...
+}
+func (h *Handler) ServeHTTP(
+  w http.ResponseWriter,
+  r *http.Request,
+) {
+  ...
+}
+```
+
+</td><td>
+
+```go
+type Handler struct {
+  // ...
+}
+var _ http.Handler = (*Handler)(nil)
+func (h *Handler) ServeHTTP(
+  w http.ResponseWriter,
+  r *http.Request,
+) {
+  // ...
+}
+```
+
+</td></tr>
+</tbody></table>
+
+如果 `*Handler` 永远不会与 `http.Handler` 接口匹配,那么语句 `var _ http.Handler = (*Handler)(nil)` 将无法编译
+
+赋值的右边应该是断言类型的零值。对于指针类型（如 `*Handler`）、切片和映射，这是 `nil`；对于结构类型，这是空结构。
+
+```go
+type LogHandler struct {
+  h   http.Handler
+  log *zap.Logger
+}
+var _ http.Handler = LogHandler{}
+func (h LogHandler) ServeHTTP(
+  w http.ResponseWriter,
+  r *http.Request,
+) {
+  // ...
+}
+```
+
 
 ### 接收器 (receiver) 与接口
 
