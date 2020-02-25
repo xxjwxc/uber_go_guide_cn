@@ -2683,3 +2683,8 @@ func Open(
 
 <!-- TODO: replace this with parameter structs and functional options, when to
 use one vs other -->
+
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/xxjwxc/uber_go_guide_cn.svg)](https://starchart.cc/xxjwxc/uber_go_guide_cn)
