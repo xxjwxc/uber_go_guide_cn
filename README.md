@@ -2394,7 +2394,7 @@ m := map[T1]T2{
 
 ### 字符串 string format
 
-如果你为`Printf`-style 函数声明格式字符串，请将格式化字符串放在外面，并将其设置为`const`常量。
+如果你在函数外声明`Printf`-style 函数的格式字符串，请将其设置为`const`常量。
 
 这有助于`go vet`对格式字符串执行静态分析。
 
