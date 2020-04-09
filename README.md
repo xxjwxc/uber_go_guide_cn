@@ -927,8 +927,6 @@ if err := foo.Open("foo"); err != nil {
 
 - 如果没有要添加的其他上下文，并且您想要维护原始错误类型，则返回原始错误。
 - 添加上下文，使用 [`"pkg/errors".Wrap`] 以便错误消息提供更多上下文 ,[`"pkg/errors".Cause`] 可用于提取原始错误。
-Use fmt.Errorf if the callers do not need to detect or handle that specific error case.
-
 - 如果调用者不需要检测或处理的特定错误情况，使用 [`fmt.Errorf`]。
 
 建议在可能的地方添加上下文，以使您获得诸如“调用服务 foo：连接被拒绝”之类的更有用的错误，而不是诸如“连接被拒绝”之类的模糊错误。
