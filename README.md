@@ -79,9 +79,9 @@ change.md
 # Uber Go 语言编码规范
 
  [Uber](https://www.uber.com/) 是一家美国硅谷的科技公司，也是 Go 语言的早期 adopter。其开源了很多 golang 项目，诸如被 Gopher 圈熟知的 [zap](https://github.com/uber-go/zap)、[jaeger](https://github.com/jaegertracing/jaeger) 等。2018 年年末 Uber 将内部的 [Go 风格规范](https://github.com/uber-go/guide) 开源到 GitHub，经过一年的积累和更新，该规范已经初具规模，并受到广大 Gopher 的关注。本文是该规范的中文版本。本版本会根据原版实时更新。
- 
+
  ## 版本
- 
+
   - 当前更新版本：2020-04-21 版本地址：[commit:#89](https://github.com/uber-go/guide/commit/8fdbf4c5946bcc53a9febb056dddef5a3e958266)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
@@ -126,7 +126,7 @@ change.md
   - [使用字段名初始化结构体](#使用字段名初始化结构体)
   - [本地变量声明](#本地变量声明)
   - [nil 是一个有效的 slice](#nil-是一个有效的-slice)
-  - [小变量作用域](#小变量作用域)
+  - [缩小变量作用域](#缩小变量作用域)
   - [避免参数语义不明确（Avoid Naked Parameters）](#避免参数语义不明确Avoid-Naked-Parameters)
   - [使用原始字符串字面值，避免转义](#使用原始字符串字面值避免转义)
   - [初始化 Struct 引用](#初始化-Struct-引用)
@@ -145,8 +145,8 @@ change.md
 
 该指南最初由 [Prashant Varanasi] 和 [Simon Newton] 编写，目的是使一些同事能快速使用 Go。多年来，该指南已根据其他人的反馈进行了修改。
 
-  [Prashant Varanasi]: https://github.com/prashantv
-  [Simon Newton]: https://github.com/nomis52
+[Prashant Varanasi]: https://github.com/prashantv
+[Simon Newton]: https://github.com/nomis52
 
 本文档记录了我们在 Uber 遵循的 Go 代码中的惯用约定。其中许多是 Go 的通用准则，而其他扩展准则依赖于下面外部的指南：
 
@@ -629,13 +629,13 @@ const (
 
 因此，在处理时间时始终使用 [`"time"`] 包，因为它有助于以更安全、更准确的方式处理这些不正确的假设。
 
-  [`"time"`]: https://golang.org/pkg/time/
+[`"time"`]: https://golang.org/pkg/time/
 
 #### 使用 `time.Time` 表达瞬时时间
 
 在处理时间的瞬间时使用 [`time.time`]，在比较、添加或减去时间时使用 `time.Time` 中的方法。
 
-  [`time.Time`]: https://golang.org/pkg/time/#Time
+[`time.Time`]: https://golang.org/pkg/time/#Time
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -663,7 +663,7 @@ func isActive(now, start, stop time.Time) bool {
 
 在处理时间段时使用 [`time.Duration`] .
 
-  [`time.Duration`]: https://golang.org/pkg/time/#Duration
+[`time.Duration`]: https://golang.org/pkg/time/#Duration
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -697,8 +697,8 @@ poll(10*time.Second)
 
 回到第一个例子，在一个时间瞬间加上 24 小时，我们用于添加时间的方法取决于意图。如果我们想要下一个日历日(当前天的下一天)的同一个时间点，我们应该使用 [`Time.AddDate`]。但是，如果我们想保证某一时刻比前一时刻晚 24 小时，我们应该使用 [`Time.Add`]。
 
-  [`Time.AddDate`]: https://golang.org/pkg/time/#Time.AddDate
-  [`Time.Add`]: https://golang.org/pkg/time/#Time.Add
+[`Time.AddDate`]: https://golang.org/pkg/time/#Time.AddDate
+[`Time.Add`]: https://golang.org/pkg/time/#Time.Add
 
 ```go
 newDay := t.AddDate(0 /* years */, 0, /* months */, 1 /* days */)
@@ -752,13 +752,13 @@ type Config struct {
 
 当在这些交互中不能使用 `time.Time` 时，除非达成一致，否则使用 `string` 和 [RFC 3339] 中定义的格式时间戳。默认情况下，[`Time.UnmarshalText`] 使用此格式，并可通过 [`time.RFC3339`] 在 `Time.Format` 和 `time.Parse` 中使用。
 
-  [`Time.UnmarshalText`]: https://golang.org/pkg/time/#Time.UnmarshalText
-  [`time.RFC3339`]: https://golang.org/pkg/time/#RFC3339
+[`Time.UnmarshalText`]: https://golang.org/pkg/time/#Time.UnmarshalText
+[`time.RFC3339`]: https://golang.org/pkg/time/#RFC3339
 
 尽管这在实践中并不成问题，但请记住，`"time"` 包不支持解析闰秒时间戳（[8728]），也不在计算中考虑闰秒（[15190]）。如果您比较两个时间瞬间，则差异将不包括这两个瞬间之间可能发生的闰秒。
 
-  [8728]: https://github.com/golang/go/issues/8728
-  [15190]: https://github.com/golang/go/issues/15190
+[8728]: https://github.com/golang/go/issues/8728
+[15190]: https://github.com/golang/go/issues/15190
 
 <!-- TODO: section on String methods for enums -->
 
@@ -931,7 +931,7 @@ if err := foo.Open("foo"); err != nil {
 
 建议在可能的地方添加上下文，以使您获得诸如“调用服务 foo：连接被拒绝”之类的更有用的错误，而不是诸如“连接被拒绝”之类的模糊错误。
 
-在将上下文添加到返回的错误时，请避免使用“failed to”之类的短语来保持上下文简洁，这些短语会陈述明显的内容，并随着错误在堆栈中的渗透而逐渐堆积：
+在将上下文添加到返回的错误时，请避免使用“failed to”之类的短语以保持上下文简洁，这些短语会陈述明显的内容，并随着错误在堆栈中的渗透而逐渐堆积：
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -975,14 +975,14 @@ x: y: new store: the error
 
 另请参见 [Don't just check errors, handle them gracefully]. 不要只是检查错误，要优雅地处理错误
 
-  [`"pkg/errors".Cause`]: https://godoc.org/github.com/pkg/errors#Cause
-  [Don't just check errors, handle them gracefully]: https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
+[`"pkg/errors".Cause`]: https://godoc.org/github.com/pkg/errors#Cause
+[Don't just check errors, handle them gracefully]: https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
 
 ### 处理类型断言失败
 
 [type assertion] 的单个返回值形式针对不正确的类型将产生 panic。因此，请始终使用“comma ok”的惯用法。
 
-  [type assertion]: https://golang.org/ref/spec#Type_assertions
+[type assertion]: https://golang.org/ref/spec#Type_assertions
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1012,7 +1012,7 @@ fine. -->
 
 在生产环境中运行的代码必须避免出现 panic。panic 是 [cascading failures] 级联失败的主要根源 。如果发生错误，该函数必须返回错误，并允许调用方决定如何处理它。
 
-  [cascading failures]: https://en.wikipedia.org/wiki/Cascading_failure
+[cascading failures]: https://en.wikipedia.org/wiki/Cascading_failure
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1105,8 +1105,8 @@ if err != nil {
 
 [go.uber.org/atomic] 通过隐藏基础类型为这些操作增加了类型安全性。此外，它包括一个方便的`atomic.Bool`类型。
 
-  [go.uber.org/atomic]: https://godoc.org/go.uber.org/atomic
-  [sync/atomic]: https://golang.org/pkg/sync/atomic/
+[go.uber.org/atomic]: https://godoc.org/go.uber.org/atomic
+[sync/atomic]: https://golang.org/pkg/sync/atomic/
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1276,7 +1276,7 @@ Go 允许 [类型嵌入] 作为继承和组合之间的折衷。
 外部类型获取嵌入类型的方法的隐式副本。
 默认情况下，这些方法委托给嵌入实例的同一方法。
 
-  [类型嵌入]: https://golang.org/doc/effective_go.html#embedding
+[类型嵌入]: https://golang.org/doc/effective_go.html#embedding
 
 结构还获得与类型同名的字段。
 所以，如果嵌入的类型是 public，那么字段是 public。为了保持向后兼容性，外部类型的每个未来版本都必须保留嵌入类型。
@@ -1665,14 +1665,14 @@ import (
 
 另请参阅 [Package Names] 和 [Go 包样式指南].
 
-  [Package Names]: https://blog.golang.org/package-names
-  [Go 包样式指南]: https://rakyll.org/style-packages/
+[Package Names]: https://blog.golang.org/package-names
+[Go 包样式指南]: https://rakyll.org/style-packages/
 
 ### 函数名
 
 我们遵循 Go 社区关于使用 [MixedCaps 作为函数名] 的约定。有一个例外，为了对相关的测试用例进行分组，函数名可能包含下划线，如：`TestMyFunction_WhatIsBeingTested`.
 
-  [MixedCaps 作为函数名]: https://golang.org/doc/effective_go.html#mixed-caps
+[MixedCaps 作为函数名]: https://golang.org/doc/effective_go.html#mixed-caps
 
 ### 导入别名
 
@@ -1966,7 +1966,7 @@ type Client struct {
 
 初始化结构体时，几乎始终应该指定字段名称。现在由 [`go vet`] 强制执行。
 
-  [`go vet`]: https://golang.org/cmd/vet/
+[`go vet`]: https://golang.org/cmd/vet/
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -2026,7 +2026,7 @@ s := "foo"
 
 但是，在某些情况下，`var` 使用关键字时默认值会更清晰。例如，声明空切片。
 
-  [Declaring Empty Slices]: https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
+[Declaring Empty Slices]: https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -2149,7 +2149,7 @@ func f(list []int) {
   </td></tr>
   </tbody></table>
 
-### 小变量作用域
+### 缩小变量作用域
 
 如果有可能，尽量缩小变量作用范围。除非它与 [减少嵌套](#减少嵌套)的规则冲突。
 
@@ -2422,7 +2422,7 @@ fmt.Printf(msg, 1, 2)
 
 这意味着您应尽可能使用预定义的`Printf`-style 函数名称。`go vet`将默认检查这些。有关更多信息，请参见 [Printf 系列]。
 
-  [Printf 系列]: https://golang.org/cmd/vet/#hdr-Printf_family
+[Printf 系列]: https://golang.org/cmd/vet/#hdr-Printf_family
 
 如果不能使用预定义的名称，请以 f 结束选择的名称：`Wrapf`，而不是`Wrap`。`go vet`可以要求检查特定的 Printf 样式名称，但名称必须以`f`结尾。
 
@@ -2432,7 +2432,7 @@ $ go vet -printfuncs=wrapf,statusf
 
 另请参阅 [go vet: Printf family check].
 
-  [go vet: Printf family check]: https://kuzminva.wordpress.com/2017/11/07/go-vet-printf-family-check/
+[go vet: Printf family check]: https://kuzminva.wordpress.com/2017/11/07/go-vet-printf-family-check/
 
 ## 编程模式
 
@@ -2440,7 +2440,7 @@ $ go vet -printfuncs=wrapf,statusf
 
 当测试逻辑是重复的时候，通过  [subtests] 使用 table 驱动的方式编写 case 代码看上去会更简洁。
 
-  [subtests]: https://blog.golang.org/subtests
+[subtests]: https://blog.golang.org/subtests
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
