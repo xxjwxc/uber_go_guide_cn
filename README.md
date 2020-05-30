@@ -82,7 +82,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2020-04-21 版本地址：[commit:#89](https://github.com/uber-go/guide/commit/8fdbf4c5946bcc53a9febb056dddef5a3e958266)
+  - 当前更新版本：2020-05-30 版本地址：[commit:#91](https://github.com/uber-go/guide/commit/85179803b3f299b0ad762a8ff51e40ab7edd0112)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -2148,6 +2148,8 @@ func f(list []int) {
 
   </td></tr>
   </tbody></table>
+
+记住，虽然nil切片是有效的切片，但它不等于长度为0的切片（一个为nil，另一个不是），并且在不同的情况下（例如序列化），这两个片的处理方式可能不同。
 
 ### 缩小变量作用域
 
