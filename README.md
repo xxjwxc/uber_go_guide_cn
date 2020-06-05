@@ -70,6 +70,9 @@ change.md
 # 2020-02-25
 - 添加有关接口验证是否符合编译时检查的指导。
 
+# 2020-06-05
+- 添加避免使用内置名称的指导意见
+
 -->
 
 # [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
@@ -82,7 +85,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2020-05-30 版本地址：[commit:#91](https://github.com/uber-go/guide/commit/85179803b3f299b0ad762a8ff51e40ab7edd0112)
+  - 当前更新版本：2020-06-05 版本地址：[commit:#93](https://github.com/uber-go/guide/commit/2910ce2e11d0e0cba2cece2c60ae45e3a984ffe5)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -106,6 +109,7 @@ change.md
   - [使用 go.uber.org/atomic](#使用-gouberorgatomic)
   - [避免可变全局变量](#避免可变全局变量)
   - [避免在公共结构中嵌入类型](#避免在公共结构中嵌入类型)
+  - [避免使用内置名称](#避免使用内置名称)
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
@@ -1330,6 +1334,91 @@ func (l *ConcreteList) Remove(e Entity) {
 - 即使使用满足相同接口的替代方法替换嵌入类型，也是一个破坏性的改变。
 
 尽管编写这些委托方法是乏味的，但是额外的工作隐藏了实现细节，留下了更多的更改机会，还消除了在文档中发现完整列表接口的间接性操作。
+
+### 避免使用内置名称
+
+Go[language specification](语言规范)概述了几个内置的，
+不应在Go项目中使用的名称标识[predeclared identifiers](预声明的标识符)。
+
+根据上下文的不同，将这些标识符作为名称重复使用，
+将在当前作用域（或任何嵌套作用域）中隐藏原始标识符，或者混淆代码。
+在最好的情况下，编译器会报错；在最坏的情况下，这样的代码可能会引入潜在的、难以恢复的错误。
+
+  [language specification]: https://golang.org/ref/spec
+  [predeclared identifiers]: https://golang.org/ref/spec#Predeclared_identifiers
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+var error string
+// `error` 作用域隐式覆盖
+
+// or
+
+func handleErrorMessage(error string) {
+    // `error` 作用域隐式覆盖
+}
+```
+
+</td><td>
+
+```go
+var errorMessage string
+// `error` 指向内置的非覆盖
+
+// or
+
+func handleErrorMessage(msg string) {
+    // `error` 指向内置的非覆盖
+}
+```
+
+</td></tr>
+<tr><td>
+
+```go
+type Foo struct {
+    // 虽然这些字段在技术上不构成阴影，但`error`或`string`字符串的重映射现在是不明确的。
+    error  error
+    string string
+}
+
+func (f Foo) Error() error {
+    // `error` 和 `f.error` 在视觉上是相似的
+    return f.error
+}
+
+func (f Foo) String() string {
+    // `string` and `f.string` 在视觉上是相似的
+    return f.string
+}
+```
+
+</td><td>
+
+```go
+type Foo struct {
+    // `error` and `string` 现在是明确的。
+    err error
+    str string
+}
+
+func (f Foo) Error() error {
+    return f.err
+}
+
+func (f Foo) String() string {
+    return f.str
+}
+```
+</td></tr>
+</tbody></table>
+
+注意，编译器在使用预先分隔的标识符时不会生成错误，
+但是诸如`go vet`之类的工具会正确地指出这些和其他情况下的隐式问题。
 
 ## 性能
 
