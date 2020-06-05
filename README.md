@@ -1337,8 +1337,8 @@ func (l *ConcreteList) Remove(e Entity) {
 
 ### 避免使用内置名称
 
-Go[language specification](语言规范)概述了几个内置的，
-不应在Go项目中使用的名称标识[predeclared identifiers](预声明的标识符)。
+Go语言规范[language specification] 概述了几个内置的，
+不应在Go项目中使用的名称标识[predeclared identifiers]。
 
 根据上下文的不同，将这些标识符作为名称重复使用，
 将在当前作用域（或任何嵌套作用域）中隐藏原始标识符，或者混淆代码。
