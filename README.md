@@ -85,7 +85,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2020-06-05 版本地址：[commit:#93](https://github.com/uber-go/guide/commit/2910ce2e11d0e0cba2cece2c60ae45e3a984ffe5)
+  - 当前更新版本：2020-06-09 版本地址：[commit:#54](https://github.com/uber-go/guide/commit/ae94be454863f7e0a6470f338fb3de10d6054df8)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -2051,9 +2051,117 @@ type Client struct {
 </td></tr>
 </tbody></table>
 
+内嵌应该提供切实的好处，比如以语义上合适的方式添加或增强功能。
+它应该在对用户不利影响的情况下完成这项工作（另请参见：`避免在公共结构中嵌入类型`[Avoid Embedding Types in Public Structs]）。
+
+  [Avoid Embedding Types in Public Structs]: #avoid-embedding-types-in-public-structs
+
+嵌入 **不应该**:
+
+- 纯粹是为了美观或方便。
+- 使外部类型更难构造或使用。
+- 影响外部类型的零值。如果外部类型有一个有用的零值，则在嵌入内部类型之后应该仍然有一个有用的零值。
+- 作为嵌入内部类型的副作用，从外部类型公开不相关的函数或字段。
+- 公开未导出的类型。
+- 影响外部类型的复制形式。
+- 更改外部类型的API或类型语义。
+- 嵌入内部类型的非规范形式。
+- 公开外部类型的实现详细信息。
+- 允许用户观察或控制类型内部。
+- 通过包装的方式改变内部函数的一般行为，这种包装方式会给用户带来一些意料之外情况。
+
+简单地说，有意识地和有意识地嵌入。一种很好的测试体验是，
+"是否所有这些导出的内部方法/字段都将直接添加到外部类型"
+如果答案是`some`或`no`，不要嵌入内部类型-而是使用字段。
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+type A struct {
+    // Bad: A.Lock() and A.Unlock() 现在可用
+    // 不提供任何功能性好处，并允许用户控制有关A的内部细节。
+    sync.Mutex
+}
+```
+
+</td><td>
+
+```go
+type countingWriteCloser struct {
+    // Good: Write() 在外层提供用于特定目的，
+    // 并且委托工作到内部类型的Write()中。
+    io.WriteCloser
+    count int
+}
+func (w *countingWriteCloser) Write(bs []byte) (int, error) {
+    w.count += len(bs)
+    return w.WriteCloser.Write(bs)
+}
+```
+
+</td></tr>
+<tr><td>
+
+```go
+type Book struct {
+    // Bad: 指针更改零值的有用性
+    io.ReadWriter
+    // other fields
+}
+// later
+var b Book
+b.Read(...)  // panic: nil pointer
+b.String()   // panic: nil pointer
+b.Write(...) // panic: nil pointer
+```
+
+</td><td>
+
+```go
+type Book struct {
+    // Good: 有用的零值
+    bytes.Buffer
+    // other fields
+}
+// later
+var b Book
+b.Read(...)  // ok
+b.String()   // ok
+b.Write(...) // ok
+```
+
+</td></tr>
+<tr><td>
+
+```go
+type Client struct {
+    sync.Mutex
+    sync.WaitGroup
+    bytes.Buffer
+    url.URL
+}
+```
+
+</td><td>
+
+```go
+type Client struct {
+    mtx sync.Mutex
+    wg  sync.WaitGroup
+    buf bytes.Buffer
+    url url.URL
+}
+```
+
+</td></tr>
+</tbody></table>
+
 ### 使用字段名初始化结构体
 
-初始化结构体时，几乎始终应该指定字段名称。现在由 [`go vet`] 强制执行。
+初始化结构体时，应该指定字段名称。现在由 [`go vet`] 强制执行。
 
 [`go vet`]: https://golang.org/cmd/vet/
 
