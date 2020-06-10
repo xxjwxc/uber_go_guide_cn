@@ -73,6 +73,9 @@ change.md
 # 2020-06-05
 - 添加避免使用内置名称的指导意见
 
+# 2020-06-10
+- 添加 init() 指导意见
+
 -->
 
 # [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
@@ -85,7 +88,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2020-06-09 版本地址：[commit:#54](https://github.com/uber-go/guide/commit/ae94be454863f7e0a6470f338fb3de10d6054df8)
+  - 当前更新版本：2020-06-10 版本地址：[commit:#94](https://github.com/uber-go/guide/commit/ca2631f5ca277d874b989e1736fa896b82a757ab)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -110,6 +113,7 @@ change.md
   - [避免可变全局变量](#避免可变全局变量)
   - [避免在公共结构中嵌入类型](#避免在公共结构中嵌入类型)
   - [避免使用内置名称](#避免使用内置名称)
+  - [避免使用 `init()`](#避免使用-`init()`)
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
@@ -1419,6 +1423,101 @@ func (f Foo) String() string {
 
 注意，编译器在使用预先分隔的标识符时不会生成错误，
 但是诸如`go vet`之类的工具会正确地指出这些和其他情况下的隐式问题。
+
+### 避免使用 `init()`
+
+尽可能避免使用`init()`。当`init()`是不可避免或可取的，代码应先尝试：
+
+1. 无论程序环境或调用如何，都要完全确定。
+2. 避免依赖于其他`init()`函数的顺序或副作用。虽然`init()`顺序是明确的，但代码可以更改，
+因此`init()`函数之间的关系可能会使代码变得脆弱和容易出错。
+3. 避免访问或操作全局或环境状态，如机器信息、环境变量、工作目录、程序参数/输入等。
+4. 避免`I/O`，包括文件系统、网络和系统调用。
+
+不能满足这些要求的代码可能属于要作为`main()`调用的一部分`（或程序生命周期中的其他地方），
+或者作为`main()`本身的一部分写入。特别是，打算由其他程序使用的库应该特别注意完全确定性，
+而不是执行“init magic”
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+type Foo struct {
+    // ...
+}
+var _defaultFoo Foo
+func init() {
+    _defaultFoo = Foo{
+        // ...
+    }
+}
+```
+
+</td><td>
+
+```go
+var _defaultFoo = Foo{
+    // ...
+}
+// or, 为了更好的可测试性:
+var _defaultFoo = defaultFoo()
+func defaultFoo() Foo {
+    return Foo{
+        // ...
+    }
+}
+```
+
+</td></tr>
+<tr><td>
+
+```go
+type Config struct {
+    // ...
+}
+var _config Config
+func init() {
+    // Bad: 基于当前目录
+    cwd, _ := os.Getwd()
+    // Bad: I/O
+    raw, _ := ioutil.ReadFile(
+        path.Join(cwd, "config", "config.yaml"),
+    )
+    yaml.Unmarshal(raw, &_config)
+}
+```
+
+</td><td>
+
+```go
+type Config struct {
+    // ...
+}
+func loadConfig() Config {
+    cwd, err := os.Getwd()
+    // handle err
+    raw, err := ioutil.ReadFile(
+        path.Join(cwd, "config", "config.yaml"),
+    )
+    // handle err
+    var config Config
+    yaml.Unmarshal(raw, &config)
+    return config
+}
+```
+
+</td></tr>
+</tbody></table>
+
+考虑到上述情况，在某些情况下，`init()`可能更可取或是必要的，可能包括：
+
+- 不能表示为单个赋值的复杂表达式。
+- 可插入的钩子，如`database/sql`、编码类型注册表等。
+- 对[Google Cloud Functions]和其他形式的确定性预计算的优化。
+
+  [Google Cloud Functions]: https://cloud.google.com/functions/docs/bestpractices/tips#use_global_variables_to_reuse_objects_in_future_invocations
 
 ## 性能
 
