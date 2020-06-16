@@ -78,6 +78,7 @@ change.md
 
 # 2020-06-16
 - 追加时优先指定切片容量
+- 添加有关指针接收器可调用性的说明
 
 -->
 
@@ -91,7 +92,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2020-06-16 版本地址：[commit:#79](https://github.com/uber-go/guide/commit/276e9781ebee73c2f68585b66cd0369df93845e6)
+  - 当前更新版本：2020-06-16 版本地址：[commit:#98](https://github.com/uber-go/guide/commit/42e34f35116b3eec2fa8774baca45a5d4155e96a)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -251,6 +252,10 @@ func (h LogHandler) ServeHTTP(
 ### 接收器 (receiver) 与接口
 
 使用值接收器的方法既可以通过值调用，也可以通过指针调用。
+
+带指针接收器的方法只能在指针或 [addressable values].
+
+  [addressable values]: https://golang.org/ref/spec#Method_values
 
 例如，
 
