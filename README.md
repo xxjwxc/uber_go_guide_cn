@@ -76,6 +76,9 @@ change.md
 # 2020-06-10
 - 添加 init() 指导意见
 
+# 2020-06-16
+- 追加时优先指定切片容量
+
 -->
 
 # [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
@@ -88,7 +91,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2020-06-10 版本地址：[commit:#94](https://github.com/uber-go/guide/commit/ca2631f5ca277d874b989e1736fa896b82a757ab)
+  - 当前更新版本：2020-06-16 版本地址：[commit:#79](https://github.com/uber-go/guide/commit/276e9781ebee73c2f68585b66cd0369df93845e6)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -114,6 +117,7 @@ change.md
   - [避免在公共结构中嵌入类型](#避免在公共结构中嵌入类型)
   - [避免使用内置名称](#避免使用内置名称)
   - [避免使用 `init()`](#避免使用-`init()`)
+  - [追加时优先指定切片容量](#追加时优先指定切片容量)
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
@@ -1518,6 +1522,53 @@ func loadConfig() Config {
 - 对[Google Cloud Functions]和其他形式的确定性预计算的优化。
 
   [Google Cloud Functions]: https://cloud.google.com/functions/docs/bestpractices/tips#use_global_variables_to_reuse_objects_in_future_invocations
+
+### 追加时优先指定切片容量
+
+追加时优先指定切片容量
+
+在尽可能的情况下，在初始化要追加的切片时为`make()`提供一个容量值。
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+for n := 0; n < b.N; n++ {
+  data := make([]int, 0)
+  for k := 0; k < size; k++{
+    data = append(data, k)
+  }
+}
+```
+
+</td><td>
+
+```go
+for n := 0; n < b.N; n++ {
+  data := make([]int, 0, size)
+  for k := 0; k < size; k++{
+    data = append(data, k)
+  }
+}
+```
+
+</td></tr>
+<tr><td>
+
+```
+BenchmarkBad-4    100000000    2.48s
+```
+
+</td><td>
+
+```
+BenchmarkGood-4   100000000    0.21s
+```
+
+</td></tr>
+</tbody></table>
 
 ## 性能
 
