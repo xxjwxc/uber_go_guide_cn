@@ -1772,56 +1772,6 @@ BenchmarkGood-4   100000000    0.21s
 </td></tr>
 </tbody></table>
 
-### 尽量初始化时指定 Map 容量
-
-在尽可能的情况下，在使用 `make()` 初始化的时候提供容量信息
-
-```go
-make(map[T1]T2, hint)
-```
-
-为 `make()` 提供容量信息（hint）尝试在初始化时调整 map 大小，
-这减少了在将元素添加到 map 时增长和分配的开销。
-注意，map 不能保证分配 hint 个容量。因此，即使提供了容量，添加元素仍然可以进行分配。 
-
-<table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
-<tbody>
-<tr><td>
-
-```go
-m := make(map[string]os.FileInfo)
-
-files, _ := ioutil.ReadDir("./files")
-for _, f := range files {
-    m[f.Name()] = f
-}
-```
-
-</td><td>
-
-```go
-
-files, _ := ioutil.ReadDir("./files")
-
-m := make(map[string]os.FileInfo, len(files))
-for _, f := range files {
-    m[f.Name()] = f
-}
-```
-
-</td></tr>
-<tr><td>
-
-`m` 是在没有大小提示的情况下创建的； 在运行时可能会有更多分配。
-
-</td><td>
-
-`m` 是有大小提示创建的；在运行时可能会有更少的分配。
-
-</td></tr>
-</tbody></table>
-
 ## 规范
 
 ### 一致性
@@ -2825,7 +2775,7 @@ var (
 </td></tr>
 </tbody></table>
 
-在尽可能的情况下，请在初始化时提供 map 容量大小，详细请看 [尽量初始化时指定 Map 容量](#尽量初始化时指定-Map-容量)。
+在尽可能的情况下，请在初始化时提供 map 容量大小，详细请看 [指定Map容量提示](#指定Map容量提示)。
 
 
 另外，如果 map 包含固定的元素列表，则使用 map literals(map 初始化列表) 初始化映射。
