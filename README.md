@@ -84,10 +84,10 @@ change.md
 - map和切片的联合指导
 -->
 
-# [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
-
 <a href="https://tracking.gitads.io/?repo=uber_go_guide_cn"> 
 <img src="https://images.gitads.io/uber_go_guide_cn" alt="GitAds"/>
+
+# [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
 
 # [English](https://github.com/uber-go/guide/blob/master/style.md)
 
