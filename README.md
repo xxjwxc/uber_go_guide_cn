@@ -288,7 +288,7 @@ func (h LogHandler) ServeHTTP(
 
 使用值接收器的方法既可以通过值调用，也可以通过指针调用。
 
-带指针接收器的方法只能在指针或 [addressable values].
+带指针接收器的方法只能通过指针或 [addressable values]调用.
 
   [addressable values]: https://golang.org/ref/spec#Method_values
 
@@ -322,7 +322,7 @@ sPtrs[1].Read()
 sPtrs[1].Write("test")
 ```
 
-同样，即使该方法具有值接收器，也可以通过指针来满足接口。
+类似的,即使方法有了值接收器,也同样可以用指针接收器来满足接口.
 
 ```go
 type F interface {
@@ -352,6 +352,27 @@ i = s2Ptr
 ```
 
 [Effective Go](https://golang.org/doc/effective_go.html) 中有一段关于 [pointers vs. values](https://golang.org/doc/effective_go.html#pointers_vs_values) 的精彩讲解。
+
+补充:
+
+- 一个类型可以有值接收器方法集和指针接收器方法集
+  - 值接收器方法集是指针接收器方法集的子集,反之不是
+- 规则
+  - 值对象只可以使用值接收器方法集
+  - 指针对象可以使用 值接收器方法集 + 指针接收器方法集
+- 接口的匹配(或者叫实现)
+  - 类型实现了接口的所有方法,叫匹配
+  - 具体的讲,要么是类型的值方法集匹配接口,要么是指针方法集匹配接口
+
+具体的匹配分两种:
+
+- 值方法集和接口匹配
+  - 给接口变量赋值的不管是值还是指针对象,都ok,因为都包含值方法集
+- 指针方法集和接口匹配
+  - 只能将指针对象赋值给接口变量,因为只有指针方法集和接口匹配
+  - 如果将值对象赋值给接口变量,会在编译期报错(会触发接口合理性检查机制)
+
+为啥 i = s2Val 会报错,因为值方法集和接口不匹配.
 
 ### 零值 Mutex 是有效的
 
