@@ -217,7 +217,7 @@ var f2 F:= &S2{}
 
 在编译时验证接口的符合性。这包括：
 
-- 将实现特定接口导出类型作为接口API 的一部分进行检查
+- 将实现特定接口的导出类型作为接口API 的一部分进行检查
 - 实现同一接口的(导出和非导出)类型属于实现类型的集合
 - 任何违反接口合理性检查的场景,都会终止编译,并通知给用户
 
@@ -250,6 +250,7 @@ type Handler struct {
   // ...
 }
 // 用于触发编译期的接口的合理性检查机制
+// 如果Hnalder没有实现http.Handler,会在编译期报错
 var _ http.Handler = (*Handler)(nil)
 func (h *Handler) ServeHTTP(
   w http.ResponseWriter,
@@ -262,7 +263,7 @@ func (h *Handler) ServeHTTP(
 </td></tr>
 </tbody></table>
 
-如果 `*Handler` 与 `http.Handler` 接口不匹配,
+如果 `*Handler` 与 `http.Handler` 的接口不匹配,
 那么语句 `var _ http.Handler = (*Handler)(nil)` 将无法编译通过.
 
 赋值的右边应该是断言类型的零值。
