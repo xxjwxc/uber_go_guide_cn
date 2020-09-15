@@ -82,6 +82,9 @@ change.md
 
 # 2020-06-17
 - map和切片的联合指导
+
+# 2020-09-15
+- Remove main panic
 -->
 
 # [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
@@ -94,7 +97,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2020-06-17 版本地址：[commit:#97](https://github.com/uber-go/guide/commit/fdb233143f1276f33ccba1372588c3b9290d00f1)
+  - 当前更新版本：2020-09-15 版本地址：[commit:#105](https://github.com/uber-go/guide/commit/9c691f1a46fad810619683511fb129b20268bc4c)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -1090,40 +1093,33 @@ fine. -->
 <tr><td>
 
 ```go
-func foo(bar string) {
-  if len(bar) == 0 {
-    panic("bar must not be empty")
+func run(args []string) {
+  if len(args) == 0 {
+    panic("an argument is required")
   }
   // ...
 }
 
 func main() {
-  if len(os.Args) != 2 {
-    fmt.Println("USAGE: foo <bar>")
-    os.Exit(1)
-  }
-  foo(os.Args[1])
+  run(os.Args[1:])
 }
 ```
 
 </td><td>
 
 ```go
-func foo(bar string) error {
-  if len(bar) == 0 {
-    return errors.New("bar must not be empty")
+func run(args []string) error {
+  if len(args) == 0 {
+    return errors.New("an argument is required")
   }
   // ...
   return nil
 }
 
 func main() {
-  if len(os.Args) != 2 {
-    fmt.Println("USAGE: foo <bar>")
+  if err := run(os.Args[1:]); err != nil {
+    fmt.Fprintln(os.Stderr, err)
     os.Exit(1)
-  }
-  if err := foo(os.Args[1]); err != nil {
-    panic(err)
   }
 }
 ```
