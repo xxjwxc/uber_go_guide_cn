@@ -231,7 +231,7 @@ var f2 F:= &S2{}
 <tr><td>
 
 ```go
-// 如果Hnalder没有实现http.Handler,会在运行时报错
+// 如果Handler没有实现http.Handler,会在运行时报错
 type Handler struct {
   // ...
 }
