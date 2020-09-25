@@ -97,7 +97,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2020-09-15 版本地址：[commit:#105](https://github.com/uber-go/guide/commit/9c691f1a46fad810619683511fb129b20268bc4c)
+  - 当前更新版本：2020-09-25 版本地址：[commit:#96](https://github.com/uber-go/guide/commit/dc025303c14891f54d1847396379548773e6123e)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -156,6 +156,7 @@ change.md
 - [编程模式](#编程模式)
   - [表驱动测试](#表驱动测试)
   - [功能选项](#功能选项)
+- [Linting](#linting)
 
 ## 介绍
 
@@ -3143,6 +3144,35 @@ func Open(
 
 <!-- TODO: replace this with parameter structs and functional options, when to
 use one vs other -->
+
+## Linting
+
+比任何 "blessed" linter 集更重要的是，lint在一个代码库中始终保持一致。
+
+我们建议至少使用以下linters，因为我认为它们有助于发现最常见的问题，并在不需要规定的情况下为代码质量建立一个高标准：
+
+- [errcheck] 以确保错误得到处理
+- [goimports] 格式化代码和管理 imports
+- [golint] 指出常见的文体错误
+- [govet] 分析代码中的常见错误
+- [staticcheck] 各种静态分析检查
+
+  [errcheck]: https://github.com/kisielk/errcheck
+  [goimports]: https://godoc.org/golang.org/x/tools/cmd/goimports
+  [golint]: https://github.com/golang/lint
+  [govet]: https://golang.org/cmd/vet/
+  [staticcheck]: https://staticcheck.io/
+
+
+### Lint Runners
+
+我们推荐 [golangci-lint] 作为go-to lint的运行程序，这主要是因为它在较大的代码库中的性能以及能够同时配置和使用许多规范。这个回购有一个例子[.golangci.yml]配置文件和推荐的linter设置。
+
+golangci-lint 有[various-linters]可供使用。建议将上述linters作为基本set，我们鼓励团队添加对他们的项目有意义的任何附加linters。
+
+  [golangci-lint]: https://github.com/golangci/golangci-lint
+  [.golangci.yml]: https://github.com/uber-go/guide/blob/master/.golangci.yml
+  [various-linters]: https://golangci-lint.run/usage/linters/
 
 
 ## Stargazers over time
