@@ -3166,7 +3166,7 @@ use one vs other -->
 
 ### Lint Runners
 
-我们推荐 [golangci-lint] 作为go-to lint的运行程序，这主要是因为它在较大的代码库中的性能以及能够同时配置和使用许多规范。这个回购有一个例子[.golangci.yml]配置文件和推荐的linter设置。
+我们推荐 [golangci-lint] 作为go-to lint的运行程序，这主要是因为它在较大的代码库中的性能以及能够同时配置和使用许多规范。这个repo有一个示例配置文件[.golangci.yml]和推荐的linter设置。
 
 golangci-lint 有[various-linters]可供使用。建议将上述linters作为基本set，我们鼓励团队添加对他们的项目有意义的任何附加linters。
 
