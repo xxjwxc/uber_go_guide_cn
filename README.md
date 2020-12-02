@@ -1315,7 +1315,7 @@ func (l *AbstractList) Remove(e Entity) {
 ```go
 // ConcreteList 是一个实体列表。
 type ConcreteList struct {
-  *AbstractList
+  AbstractList
 }
 ```
 
@@ -1324,15 +1324,15 @@ type ConcreteList struct {
 ```go
 // ConcreteList 是一个实体列表。
 type ConcreteList struct {
-  list *AbstractList
+  list AbstractList
 }
 // 添加将实体添加到列表中。
 func (l *ConcreteList) Add(e Entity) {
-  return l.list.Add(e)
+  l.list.Add(e)
 }
 // 移除从列表中移除实体。
 func (l *ConcreteList) Remove(e Entity) {
-  return l.list.Remove(e)
+  l.list.Remove(e)
 }
 ```
 
@@ -1375,15 +1375,15 @@ type ConcreteList struct {
 ```go
 // ConcreteList 是一个实体列表。
 type ConcreteList struct {
-  list *AbstractList
+  list AbstractList
 }
 // 添加将实体添加到列表中。
 func (l *ConcreteList) Add(e Entity) {
-  return l.list.Add(e)
+  l.list.Add(e)
 }
 // 移除从列表中移除实体。
 func (l *ConcreteList) Remove(e Entity) {
-  return l.list.Remove(e)
+  l.list.Remove(e)
 }
 ```
 
