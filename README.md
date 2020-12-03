@@ -97,7 +97,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2020-09-25 版本地址：[commit:#96](https://github.com/uber-go/guide/commit/dc025303c14891f54d1847396379548773e6123e)
+  - 当前更新版本：2020-12-03 版本地址：[commit:#106](https://github.com/uber-go/guide/commit/e4602992ffbc465ea14bce5501cdbfc361fd8c96)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -1366,7 +1366,7 @@ type AbstractList interface {
 }
 // ConcreteList 是一个实体列表。
 type ConcreteList struct {
-  *AbstractList
+  AbstractList
 }
 ```
 
