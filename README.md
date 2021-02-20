@@ -707,7 +707,7 @@ const (
 
 #### 使用 `time.Time` 表达瞬时时间
 
-在处理时间的瞬间时使用 [`time.time`]，在比较、添加或减去时间时使用 `time.Time` 中的方法。
+在处理时间的瞬间时使用 [`time.Time`]，在比较、添加或减去时间时使用 `time.Time` 中的方法。
 
 [`time.Time`]: https://golang.org/pkg/time/#Time
 
