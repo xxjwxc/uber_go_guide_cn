@@ -97,7 +97,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2021-03-10 版本地址：[commit:#116](https://github.com/uber-go/guide/commit/33b874dc3dec866094b58ba480e6ec9992a6884a)
+  - 当前更新版本：2021-03-10 版本地址：[commit:#117](https://github.com/uber-go/guide/commit/b314c8940ae01f39fa3f2551153f02d2a829d02d)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -184,7 +184,7 @@ change.md
 本文档记录了我们在 Uber 遵循的 Go 代码中的惯用约定。其中许多是 Go 的通用准则，而其他扩展准则依赖于下面外部的指南：
 
 1. [Effective Go](https://golang.org/doc/effective_go.html)
-2. [The Go common mistakes guide](https://github.com/golang/go/wiki/CommonMistakes)
+2. [Go Common Mistakes](https://github.com/golang/go/wiki/CommonMistakes)
 3. [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
 
 
