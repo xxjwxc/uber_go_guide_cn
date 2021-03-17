@@ -85,19 +85,23 @@ change.md
 
 # 2020-09-15
 - Remove main panic
+
+# 2021-03-17
+- 结构体初始化
+
 -->
 
-# [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
+## [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
 
-# [English](https://github.com/uber-go/guide/blob/master/style.md)
+## [English](https://github.com/uber-go/guide/blob/master/style.md)
 
-# Uber Go 语言编码规范
+## Uber Go 语言编码规范
 
  [Uber](https://www.uber.com/) 是一家美国硅谷的科技公司，也是 Go 语言的早期 adopter。其开源了很多 golang 项目，诸如被 Gopher 圈熟知的 [zap](https://github.com/uber-go/zap)、[jaeger](https://github.com/jaegertracing/jaeger) 等。2018 年年末 Uber 将内部的 [Go 风格规范](https://github.com/uber-go/guide) 开源到 GitHub，经过一年的积累和更新，该规范已经初具规模，并受到广大 Gopher 的关注。本文是该规范的中文版本。本版本会根据原版实时更新。
 
  ## 版本
 
-  - 当前更新版本：2021-03-10 版本地址：[commit:#117](https://github.com/uber-go/guide/commit/b314c8940ae01f39fa3f2551153f02d2a829d02d)
+  - 当前更新版本：2021-03-17 版本地址：[commit:#121](https://github.com/uber-go/guide/commit/9180022ccaf35583952003ac505925b1e9a4f8db)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -106,69 +110,73 @@ change.md
 - [uber-go/guide 的中文翻译](#uber-goguide-的中文翻译)
 - [English](#english)
 - [Uber Go 语言编码规范](#uber-go-语言编码规范)
-  - [版本](#版本)
-  - [目录](#目录)
-  - [介绍](#介绍)
-  - [指导原则](#指导原则)
-    - [指向 interface 的指针](#指向-interface-的指针)
-    - [Interface 合理性验证](#interface-合理性验证)
-    - [接收器 (receiver) 与接口](#接收器-receiver-与接口)
-    - [零值 Mutex 是有效的](#零值-mutex-是有效的)
-    - [在边界处拷贝 Slices 和 Maps](#在边界处拷贝-slices-和-maps)
-      - [接收 Slices 和 Maps](#接收-slices-和-maps)
-      - [返回 slices 或 maps](#返回-slices-或-maps)
-    - [使用 defer 释放资源](#使用-defer-释放资源)
-    - [Channel 的 size 要么是 1，要么是无缓冲的](#channel-的-size-要么是-1要么是无缓冲的)
-    - [枚举从 1 开始](#枚举从-1-开始)
-    - [使用 time 处理时间](#使用-time-处理时间)
-      - [使用 `time.Time` 表达瞬时时间](#使用-timetime-表达瞬时时间)
-      - [使用 `time.Duration` 表达时间段](#使用-timeduration-表达时间段)
-      - [对外部系统使用 `time.Time` 和 `time.Duration`](#对外部系统使用-timetime-和-timeduration)
-    - [错误类型](#错误类型)
-    - [错误包装 (Error Wrapping)](#错误包装-error-wrapping)
-    - [处理类型断言失败](#处理类型断言失败)
-    - [不要 panic](#不要-panic)
-    - [使用 go.uber.org/atomic](#使用-gouberorgatomic)
-    - [避免可变全局变量](#避免可变全局变量)
-    - [避免在公共结构中嵌入类型](#避免在公共结构中嵌入类型)
-    - [避免使用内置名称](#避免使用内置名称)
-    - [避免使用 `init()`](#避免使用-init)
-    - [追加时优先指定切片容量](#追加时优先指定切片容量)
-  - [性能](#性能)
-    - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
-    - [避免字符串到字节的转换](#避免字符串到字节的转换)
-    - [指定容器容量](#指定容器容量)
-      - [指定Map容量提示](#指定map容量提示)
-      - [指定切片容量](#指定切片容量)
-  - [规范](#规范)
-    - [一致性](#一致性)
-    - [相似的声明放在一组](#相似的声明放在一组)
-    - [import 分组](#import-分组)
-    - [包名](#包名)
-    - [函数名](#函数名)
-    - [导入别名](#导入别名)
-    - [函数分组与顺序](#函数分组与顺序)
-    - [减少嵌套](#减少嵌套)
-    - [不必要的 else](#不必要的-else)
-    - [顶层变量声明](#顶层变量声明)
-    - [对于未导出的顶层常量和变量，使用_作为前缀](#对于未导出的顶层常量和变量使用_作为前缀)
-    - [结构体中的嵌入](#结构体中的嵌入)
-    - [使用字段名初始化结构体](#使用字段名初始化结构体)
-    - [本地变量声明](#本地变量声明)
-    - [nil 是一个有效的 slice](#nil-是一个有效的-slice)
-    - [缩小变量作用域](#缩小变量作用域)
-    - [避免参数语义不明确(Avoid Naked Parameters)](#避免参数语义不明确avoid-naked-parameters)
-    - [使用原始字符串字面值，避免转义](#使用原始字符串字面值避免转义)
+- [版本](#版本)
+- [目录](#目录)
+- [介绍](#介绍)
+- [指导原则](#指导原则)
+  - [指向 interface 的指针](#指向-interface-的指针)
+  - [Interface 合理性验证](#interface-合理性验证)
+  - [接收器 (receiver) 与接口](#接收器-receiver-与接口)
+  - [零值 Mutex 是有效的](#零值-mutex-是有效的)
+  - [在边界处拷贝 Slices 和 Maps](#在边界处拷贝-slices-和-maps)
+    - [接收 Slices 和 Maps](#接收-slices-和-maps)
+    - [返回 slices 或 maps](#返回-slices-或-maps)
+  - [使用 defer 释放资源](#使用-defer-释放资源)
+  - [Channel 的 size 要么是 1，要么是无缓冲的](#channel-的-size-要么是-1要么是无缓冲的)
+  - [枚举从 1 开始](#枚举从-1-开始)
+  - [使用 time 处理时间](#使用-time-处理时间)
+    - [使用 `time.Time` 表达瞬时时间](#使用-timetime-表达瞬时时间)
+    - [使用 `time.Duration` 表达时间段](#使用-timeduration-表达时间段)
+    - [对外部系统使用 `time.Time` 和 `time.Duration`](#对外部系统使用-timetime-和-timeduration)
+  - [错误类型](#错误类型)
+  - [错误包装 (Error Wrapping)](#错误包装-error-wrapping)
+  - [处理类型断言失败](#处理类型断言失败)
+  - [不要 panic](#不要-panic)
+  - [使用 go.uber.org/atomic](#使用-gouberorgatomic)
+  - [避免可变全局变量](#避免可变全局变量)
+  - [避免在公共结构中嵌入类型](#避免在公共结构中嵌入类型)
+  - [避免使用内置名称](#避免使用内置名称)
+  - [避免使用 `init()`](#避免使用-init)
+  - [追加时优先指定切片容量](#追加时优先指定切片容量)
+- [性能](#性能)
+  - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
+  - [避免字符串到字节的转换](#避免字符串到字节的转换)
+  - [指定容器容量](#指定容器容量)
+    - [指定Map容量提示](#指定map容量提示)
+    - [指定切片容量](#指定切片容量)
+- [规范](#规范)
+  - [一致性](#一致性)
+  - [相似的声明放在一组](#相似的声明放在一组)
+  - [import 分组](#import-分组)
+  - [包名](#包名)
+  - [函数名](#函数名)
+  - [导入别名](#导入别名)
+  - [函数分组与顺序](#函数分组与顺序)
+  - [减少嵌套](#减少嵌套)
+  - [不必要的 else](#不必要的-else)
+  - [顶层变量声明](#顶层变量声明)
+  - [对于未导出的顶层常量和变量，使用_作为前缀](#对于未导出的顶层常量和变量使用_作为前缀)
+  - [结构体中的嵌入](#结构体中的嵌入)
+  - [使用字段名初始化结构体](#使用字段名初始化结构体)
+  - [本地变量声明](#本地变量声明)
+  - [nil 是一个有效的 slice](#nil-是一个有效的-slice)
+  - [缩小变量作用域](#缩小变量作用域)
+  - [避免参数语义不明确(Avoid Naked Parameters)](#避免参数语义不明确avoid-naked-parameters)
+  - [使用原始字符串字面值，避免转义](#使用原始字符串字面值避免转义)
+  - [初始化结构体](#初始化结构体)
+    - [使用字段名初始化结构](#使用字段名初始化结构)
+    - [省略结构中的零值字段](#省略结构中的零值字段)
+    - [对零值结构使用 `var`](#对零值结构使用-var)
     - [初始化 Struct 引用](#初始化-struct-引用)
-    - [初始化 Maps](#初始化-maps)
-    - [字符串 string format](#字符串-string-format)
-    - [命名 Printf 样式的函数](#命名-printf-样式的函数)
-  - [编程模式](#编程模式)
-    - [表驱动测试](#表驱动测试)
-    - [功能选项](#功能选项)
-  - [Linting](#linting)
-    - [Lint Runners](#lint-runners)
-  - [Stargazers over time](#stargazers-over-time)
+  - [初始化 Maps](#初始化-maps)
+  - [字符串 string format](#字符串-string-format)
+  - [命名 Printf 样式的函数](#命名-printf-样式的函数)
+- [编程模式](#编程模式)
+  - [表驱动测试](#表驱动测试)
+  - [功能选项](#功能选项)
+- [Linting](#linting)
+  - [Lint Runners](#lint-runners)
+- [Stargazers over time](#stargazers-over-time)
 
 ## 介绍
 
@@ -911,7 +919,7 @@ func Open() error {
 // package bar
 
 if err := foo.Open(); err != nil {
-  if err == foo.ErrCouldNotOpen {
+  if errors.Is(err, foo.ErrCouldNotOpen) {
     // handle
   } else {
     panic("unknown error")
@@ -1030,7 +1038,7 @@ if err := foo.Open("foo"); err != nil {
 s, err := store.New()
 if err != nil {
     return fmt.Errorf(
-        "failed to create new store: %s", err)
+        "failed to create new store: %v", err)
 }
 ```
 
@@ -1040,7 +1048,7 @@ if err != nil {
 s, err := store.New()
 if err != nil {
     return fmt.Errorf(
-        "new store: %s", err)
+        "new store: %v", err)
 }
 ```
 
@@ -1927,7 +1935,7 @@ const (
   Add Operation = iota + 1
   Subtract
   Multiply
-  ENV_VAR = "MY_ENV"
+  EnvVar = "MY_ENV"
 )
 ```
 
@@ -1942,7 +1950,7 @@ const (
   Multiply
 )
 
-const ENV_VAR = "MY_ENV"
+const EnvVar = "MY_ENV"
 ```
 
 </td></tr>
@@ -2764,7 +2772,119 @@ wantError := `unknown error:"test"`
 </td></tr>
 </tbody></table>
 
-### 初始化 Struct 引用
+### 初始化结构体
+
+#### 使用字段名初始化结构
+
+初始化结构时，几乎应该始终指定字段名。目前由[`go vet`]强制执行。
+
+  [`go vet`]: https://golang.org/cmd/vet/
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+k := User{"John", "Doe", true}
+```
+
+</td><td>
+
+```go
+k := User{
+    FirstName: "John",
+    LastName: "Doe",
+    Admin: true,
+}
+```
+
+</td></tr>
+</tbody></table>
+
+例外：当有3个或更少的字段时，测试表中的字段名*may*可以省略。
+
+```go
+tests := []struct{
+  op Operation
+  want string
+}{
+  {Add, "add"},
+  {Subtract, "subtract"},
+}
+```
+#### 省略结构中的零值字段
+
+初始化具有字段名的结构时，除非提供有意义的上下文，否则忽略值为零的字段。
+也就是，让我们自动将这些设置为零值
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+user := User{
+  FirstName: "John",
+  LastName: "Doe",
+  MiddleName: "",
+  Admin: false,
+}
+```
+
+</td><td>
+
+```go
+user := User{
+  FirstName: "John",
+  LastName: "Doe",
+}
+```
+
+</td></tr>
+</tbody></table>
+
+这有助于通过省略该上下文中的默认值来减少阅读的障碍。只指定有意义的值。
+
+在字段名提供有意义上下文的地方包含零值。例如，[表驱动测试](#表驱动测试) 中的测试用例可以受益于字段的名称，即使它们是零值的。
+
+```go
+tests := []struct{
+  give string
+  want int
+}{
+  {give: "0", want: 0},
+  // ...
+}
+```
+#### 对零值结构使用 `var`
+
+如果在声明中省略了结构的所有字段，请使用 `var` 声明结构。
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+user := User{}
+```
+
+</td><td>
+
+```go
+var user User
+```
+
+</td></tr>
+</tbody></table>
+
+这将零值结构与那些具有类似于为[初始化 Maps]创建的,区别于非零值字段的结构区分开来，
+并与我们更喜欢的[declare empty slices][Declaring empty slices]方式相匹配。
+
+  [初始化 Maps](#初始化-maps)
+
+#### 初始化 Struct 引用
 
 在初始化结构引用时，请使用`&T{}`代替`new(T)`，以使其与结构体初始化一致。
 
