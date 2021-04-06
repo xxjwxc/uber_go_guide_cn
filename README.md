@@ -313,7 +313,7 @@ func (h LogHandler) ServeHTTP(
 
 带指针接收器的方法只能通过指针或 [addressable values]调用.
 
-  [addressable values]: https://golang.org/ref/spec#Method_values
+[addressable values]: https://golang.org/ref/spec#Method_values
 
 例如，
 
@@ -1429,8 +1429,8 @@ Go语言规范[language specification] 概述了几个内置的，
 将在当前作用域（或任何嵌套作用域）中隐藏原始标识符，或者混淆代码。
 在最好的情况下，编译器会报错；在最坏的情况下，这样的代码可能会引入潜在的、难以恢复的错误。
 
-  [language specification]: https://golang.org/ref/spec
-  [predeclared identifiers]: https://golang.org/ref/spec#Predeclared_identifiers
+[language specification]: https://golang.org/ref/spec
+[predeclared identifiers]: https://golang.org/ref/spec#Predeclared_identifiers
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -2340,7 +2340,7 @@ type Client struct {
 内嵌应该提供切实的好处，比如以语义上合适的方式添加或增强功能。
 它应该在对用户不利影响的情况下完成这项工作（另请参见：`避免在公共结构中嵌入类型`[Avoid Embedding Types in Public Structs]）。
 
-  [Avoid Embedding Types in Public Structs]: #avoid-embedding-types-in-public-structs
+[Avoid Embedding Types in Public Structs]: #avoid-embedding-types-in-public-structs
 
 嵌入 **不应该**:
 
@@ -2778,7 +2778,7 @@ wantError := `unknown error:"test"`
 
 初始化结构时，几乎应该始终指定字段名。目前由[`go vet`]强制执行。
 
-  [`go vet`]: https://golang.org/cmd/vet/
+[`go vet`]: https://golang.org/cmd/vet/
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -2881,8 +2881,6 @@ var user User
 
 这将零值结构与那些具有类似于为[初始化 Maps]创建的,区别于非零值字段的结构区分开来，
 并与我们更喜欢的[declare empty slices][Declaring empty slices]方式相匹配。
-
-  [初始化 Maps](#初始化-maps)
 
 #### 初始化 Struct 引用
 
@@ -3304,9 +3302,9 @@ use one vs other -->
 
 golangci-lint 有[various-linters]可供使用。建议将上述linters作为基本set，我们鼓励团队添加对他们的项目有意义的任何附加linters。
 
-  [golangci-lint]: https://github.com/golangci/golangci-lint
-  [.golangci.yml]: https://github.com/uber-go/guide/blob/master/.golangci.yml
-  [various-linters]: https://golangci-lint.run/usage/linters/
+[golangci-lint]: https://github.com/golangci/golangci-lint
+[.golangci.yml]: https://github.com/uber-go/guide/blob/master/.golangci.yml
+[various-linters]: https://golangci-lint.run/usage/linters/
 
 
 ## Stargazers over time
