@@ -89,6 +89,9 @@ change.md
 # 2021-03-17
 - 结构体初始化
 
+# 2021-04-19
+- 程序只能在`main()`中退出，最好最多退出一次
+
 -->
 
 ## [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
@@ -101,7 +104,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2021-03-17 版本地址：[commit:#121](https://github.com/uber-go/guide/commit/9180022ccaf35583952003ac505925b1e9a4f8db)
+  - 当前更新版本：2021-04-23 版本地址：[commit:#114](https://github.com/uber-go/guide/commit/36196c9ff4173b5fc22d8fa5921657447ded9d70)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -138,6 +141,8 @@ change.md
   - [避免使用内置名称](#避免使用内置名称)
   - [避免使用 `init()`](#避免使用-init)
   - [追加时优先指定切片容量](#追加时优先指定切片容量)
+  - [主函数退出方式(Exit)](#主函数退出方式exit)
+    - [一次性退出](#一次性退出)
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
@@ -1642,6 +1647,135 @@ BenchmarkBad-4    100000000    2.48s
 
 ```
 BenchmarkGood-4   100000000    0.21s
+```
+
+</td></tr>
+</tbody></table>
+
+### 主函数退出方式(Exit)
+
+Go程序使用[`os.Exit`] 或者 [`log.Fatal*`] 立即退出 (惊慌失措不是退出程序的好方法，请[不要惊慌]（#不要惊慌）
+to exit immediately. (Panicking 不是退出程序的好方法，请 [don't panic](#不要-panic).)
+
+  [`os.Exit`]: https://golang.org/pkg/os/#Exit
+  [`log.Fatal*`]: https://golang.org/pkg/log/#Fatal
+
+**仅在`main（）`**中调用其中一个 `os.Exit` 或者 `log.Fatal*`。所有其他函数应将错误返回到信号失败中。
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+func main() {
+  body := readFile(path)
+  fmt.Println(body)
+}
+func readFile(path string) string {
+  f, err := os.Open(path)
+  if err != nil {
+    log.Fatal(err)
+  }
+  b, err := ioutil.ReadAll(f)
+  if err != nil {
+    log.Fatal(err)
+  }
+  return string(b)
+}
+```
+
+</td><td>
+
+```go
+func main() {
+  body, err := readFile(path)
+  if err != nil {
+    log.Fatal(err)
+  }
+  fmt.Println(body)
+}
+func readFile(path string) (string, error) {
+  f, err := os.Open(path)
+  if err != nil {
+    return "", err
+  }
+  b, err := ioutil.ReadAll(f)
+  if err != nil {
+    return "", err
+  }
+  return string(b), nil
+}
+```
+
+</td></tr>
+</tbody></table>
+
+原则上：退出的具有多种功能的程序存在一些问题：
+
+- 不明显的控制流：任何函数都可以退出程序，因此很难对控制流进行推理。
+- 难以测试：退出程序的函数也将退出调用它的测试。这使得函数很难测试，并引入了跳过 `go test` 尚未运行的其他测试的风险。
+- Skipped cleanup: When a function exits the program, it skips function calls enqueued with `defer` statements. This adds risk of skipping important cleanup tasks.
+- 跳过清除：当函数退出程序时，它跳过与 `defer` 语句一起排队的函数调用。这增加了跳过重要清理任务的风险。
+#### 一次性退出
+
+如果可能的话，你的`main（）`函数中**最多一次** 调用 `os.Exit`或者`log.Fatal`。如果有多个错误场景停止程序执行，请将该逻辑放在单独的函数下并从中返回错误。
+这会缩短 `main()`函数，并将所有关键业务逻辑放入一个单独的、可测试的函数中。
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+package main
+func main() {
+  args := os.Args[1:]
+  if len(args) != 1 {
+    log.Fatal("missing file")
+  }
+  name := args[0]
+  f, err := os.Open(name)
+  if err != nil {
+    log.Fatal(err)
+  }
+  defer f.Close()
+  // 如果我们调用log.Fatal 在这条线之后
+  // f.Close 将会被执行.
+  b, err := ioutil.ReadAll(f)
+  if err != nil {
+    log.Fatal(err)
+  }
+  // ...
+}
+```
+
+</td><td>
+
+```go
+package main
+func main() {
+  if err := run(); err != nil {
+    log.Fatal(err)
+  }
+}
+func run() error {
+  args := os.Args[1:]
+  if len(args) != 1 {
+    return errors.New("missing file")
+  }
+  name := args[0]
+  f, err := os.Open(name)
+  if err != nil {
+    return err
+  }
+  defer f.Close()
+  b, err := ioutil.ReadAll(f)
+  if err != nil {
+    return err
+  }
+  // ...
+}
 ```
 
 </td></tr>
