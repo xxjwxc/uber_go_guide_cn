@@ -1654,8 +1654,7 @@ BenchmarkGood-4   100000000    0.21s
 
 ### 主函数退出方式(Exit)
 
-Go程序使用[`os.Exit`] 或者 [`log.Fatal*`] 立即退出 (惊慌失措不是退出程序的好方法，请[不要惊慌]（#不要惊慌）
-to exit immediately. (Panicking 不是退出程序的好方法，请 [don't panic](#不要-panic).)
+Go程序使用[`os.Exit`] 或者 [`log.Fatal*`] 立即退出 (使用`panic`不是退出程序的好方法，请 [don't panic](#不要-panic).)
 
   [`os.Exit`]: https://golang.org/pkg/os/#Exit
   [`log.Fatal*`]: https://golang.org/pkg/log/#Fatal
@@ -1715,8 +1714,7 @@ func readFile(path string) (string, error) {
 
 - 不明显的控制流：任何函数都可以退出程序，因此很难对控制流进行推理。
 - 难以测试：退出程序的函数也将退出调用它的测试。这使得函数很难测试，并引入了跳过 `go test` 尚未运行的其他测试的风险。
-- Skipped cleanup: When a function exits the program, it skips function calls enqueued with `defer` statements. This adds risk of skipping important cleanup tasks.
-- 跳过清除：当函数退出程序时，它跳过与 `defer` 语句一起排队的函数调用。这增加了跳过重要清理任务的风险。
+- 跳过清理：当函数退出程序时，会跳过已经进入`defer`队列里的函数调用。这增加了跳过重要清理任务的风险。
 #### 一次性退出
 
 如果可能的话，你的`main（）`函数中**最多一次** 调用 `os.Exit`或者`log.Fatal`。如果有多个错误场景停止程序执行，请将该逻辑放在单独的函数下并从中返回错误。
