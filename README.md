@@ -104,7 +104,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2021-04-23 版本地址：[commit:#114](https://github.com/uber-go/guide/commit/36196c9ff4173b5fc22d8fa5921657447ded9d70)
+  - 当前更新版本：2021-07-09 版本地址：[commit:#130](https://github.com/uber-go/guide/commit/b8745282405323881e13cd122d5222316a815349)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -426,27 +426,27 @@ mu.Lock()
 </td></tr>
 </tbody></table>
 
-如果你使用结构体指针，mutex 可以非指针形式作为结构体的组成字段，或者更好的方式是直接嵌入到结构体中。
-如果是私有结构体类型或是要实现 Mutex 接口的类型，我们可以使用嵌入 mutex 的方法：
+如果你使用结构体指针，mutex 应该作为结构体的非指针字段。即使该结构体不被导出，也不要直接把 mutex 嵌入到结构体中。
 
 <table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
 <tbody>
 <tr><td>
 
 ```go
-type smap struct {
-  sync.Mutex // only for unexported types（仅适用于非导出类型）
+type SMap struct {
+  sync.Mutex
 
   data map[string]string
 }
 
-func newSMap() *smap {
-  return &smap{
+func NewSMap() *SMap {
+  return &SMap{
     data: make(map[string]string),
   }
 }
 
-func (m *smap) Get(k string) string {
+func (m *SMap) Get(k string) string {
   m.Lock()
   defer m.Unlock()
 
@@ -458,7 +458,7 @@ func (m *smap) Get(k string) string {
 
 ```go
 type SMap struct {
-  mu sync.Mutex // 对于导出类型，请使用私有锁
+  mu sync.Mutex
 
   data map[string]string
 }
@@ -478,14 +478,16 @@ func (m *SMap) Get(k string) string {
 ```
 
 </td></tr>
+<tr><td>
 
-</tr>
-<tr>
-<td>为私有类型或需要实现互斥接口的类型嵌入。</td>
-<td>对于导出的类型，请使用专用字段。</td>
-</tr>
+`Mutex` 字段， `Lock` 和 `Unlock` 方法是 `SMap` 导出的 API 中不刻意说明的一部分。
 
-</tbody></table>
+ </td><td>
+
+mutex 及其方法是 `SMap` 的实现细节，对其调用者不可见。
+
+ </td></tr>
+ </tbody></table>
 
 ### 在边界处拷贝 Slices 和 Maps
 
