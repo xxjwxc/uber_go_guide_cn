@@ -1661,7 +1661,7 @@ Go程序使用[`os.Exit`] 或者 [`log.Fatal*`] 立即退出 (使用`panic`不�
   [`os.Exit`]: https://golang.org/pkg/os/#Exit
   [`log.Fatal*`]: https://golang.org/pkg/log/#Fatal
 
-**仅在`main（）`**中调用其中一个 `os.Exit` 或者 `log.Fatal*`。所有其他函数应将错误返回到信号失败中。
+**仅在`main()`**中调用其中一个 `os.Exit` 或者 `log.Fatal*`。所有其他函数应将错误返回到信号失败中。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
