@@ -3342,10 +3342,6 @@ db.Open(
 </td></tr>
 </tbody></table>
 
-Our suggested way of implementing this pattern is with an `Option` interface
-that holds an unexported method, recording options on an unexported `options`
-struct.
-
 我们建议实现此模式的方法是使用一个 `Option` 接口，该接口保存一个未导出的方法，在一个未导出的 `options` 结构上记录选项。
 
 ```go
