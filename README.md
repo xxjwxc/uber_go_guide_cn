@@ -92,6 +92,10 @@ change.md
 # 2021-04-19
 - 程序只能在`main()`中退出，最好最多退出一次
 
+# 2021-11-16
+
+- 添加有关将 `%w` 与 `%v` 与 `fmt.Errorf` 结合使用的指南，以及在何处使用 `errors.New` 或自定义错误类型。
+
 -->
 
 ## [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
@@ -104,7 +108,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2021-07-09 版本地址：[commit:#133](https://github.com/uber-go/guide/commit/e8b4f76fb9acc47d79a4f8f3a484d41f86325a03)
+  - 当前更新版本：2021-07-09 版本地址：[commit:#136](https://github.com/uber-go/guide/commit/2fdd2427228b63c742e2f03f79e251f5866c0775)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -131,9 +135,11 @@ change.md
     - [使用 `time.Time` 表达瞬时时间](#使用-timetime-表达瞬时时间)
     - [使用 `time.Duration` 表达时间段](#使用-timeduration-表达时间段)
     - [对外部系统使用 `time.Time` 和 `time.Duration`](#对外部系统使用-timetime-和-timeduration)
-  - [错误类型](#错误类型)
-  - [错误包装 (Error Wrapping)](#错误包装-error-wrapping)
-  - [处理类型断言失败](#处理类型断言失败)
+  - [Errors](#errors)
+    - [错误类型](#错误类型)
+    - [错误包装](#错误包装)
+    - [错误命名](#错误命名)
+  - [处理断言失败](#处理断言失败)
   - [不要 panic](#不要-panic)
   - [使用 go.uber.org/atomic](#使用-gouberorgatomic)
   - [避免可变全局变量](#避免可变全局变量)
@@ -866,30 +872,40 @@ type Config struct {
 
 <!-- TODO: section on String methods for enums -->
 
-### 错误类型
 
-Go 中有多种声明错误（Error) 的选项：
+### Errors
 
-- [`errors.New`] 对于简单静态字符串的错误
-- [`fmt.Errorf`] 用于格式化的错误字符串
-- 实现 `Error()` 方法的自定义类型
--  用 [`"pkg/errors".Wrap`] 的 Wrapped errors
+#### 错误类型
 
-返回错误时，请考虑以下因素以确定最佳选择：
+声明错误的选项很少。
+在选择最适合您的用例的选项之前，请考虑以下事项。
 
-- 这是一个不需要额外信息的简单错误吗？如果是这样，[`errors.New`] 足够了。
-- 客户需要检测并处理此错误吗？如果是这样，则应使用自定义类型并实现该 `Error()` 方法。
-- 您是否正在传播下游函数返回的错误？如果是这样，请查看本文后面有关错误包装 [section on error wrapping](#错误包装 (Error-Wrapping)) 部分的内容。
-- 否则 [`fmt.Errorf`] 就可以了。
+- 调用者是否需要匹配错误以便他们可以处理它？
+  如果是，我们必须通过声明顶级错误变量或自定义类型来支持 [`errors.Is`] 或 [`errors.As`] 函数。
+- 错误消息是否为静态字符串，还是需要上下文信息的动态字符串？
+  如果是静态字符串，我们可以使用 [`errors.New`]，但对于后者，我们必须使用 [`fmt.Errorf`] 或自定义错误类型。
+- 我们是否正在传递由下游函数返回的新错误？
+   如果是这样，请参阅[错误包装部分](#错误包装)。
 
-  [`errors.New`]: https://golang.org/pkg/errors/#New
-  [`fmt.Errorf`]: https://golang.org/pkg/fmt/#Errorf
-  [`"pkg/errors".Wrap`]: https://godoc.org/github.com/pkg/errors#Wrap
+[`errors.Is`]: https://golang.org/pkg/errors/#Is
+[`errors.As`]: https://golang.org/pkg/errors/#As
 
-如果客户端需要检测错误，并且您已使用创建了一个简单的错误 [`errors.New`]，请使用一个错误变量。
+| 错误匹配? | 错误消息 | 指导                           |
+|-----------------|---------------|-------------------------------------|
+| No              | static        | [`errors.New`]                      |
+| No              | dynamic       | [`fmt.Errorf`]                      |
+| Yes             | static        | top-level `var` with [`errors.New`] |
+| Yes             | dynamic       | custom `error` type                 |
+
+[`errors.New`]: https://golang.org/pkg/errors/#New
+[`fmt.Errorf`]: https://golang.org/pkg/fmt/#Errorf
+
+例如，
+使用 [`errors.New`] 表示带有静态字符串的错误。
+如果调用者需要匹配并处理此错误，则将此错误导出为变量以支持将其与 `errors.Is` 匹配。
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>无错误匹配</th><th>错误匹配</th></tr></thead>
 <tbody>
 <tr><td>
 
@@ -902,14 +918,9 @@ func Open() error {
 
 // package bar
 
-func use() {
-  if err := foo.Open(); err != nil {
-    if err.Error() == "could not open" {
-      // handle
-    } else {
-      panic("unknown error")
-    }
-  }
+if err := foo.Open(); err != nil {
+  // Can't handle the error.
+  panic("unknown error")
 }
 ```
 
@@ -928,7 +939,7 @@ func Open() error {
 
 if err := foo.Open(); err != nil {
   if errors.Is(err, foo.ErrCouldNotOpen) {
-    // handle
+    // handle the error
   } else {
     panic("unknown error")
   }
@@ -938,104 +949,94 @@ if err := foo.Open(); err != nil {
 </td></tr>
 </tbody></table>
 
-如果您有可能需要客户端检测的错误，并且想向其中添加更多信息（例如，它不是静态字符串），则应使用自定义类型。
+对于动态字符串的错误，
+如果调用者不需要匹配它，则使用 [`fmt.Errorf`]，
+如果调用者确实需要匹配它，则自定义 `error`。
 
 <table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<thead><tr><th>无错误匹配</th><th>错误匹配</th></tr></thead>
 <tbody>
 <tr><td>
-
-```go
-func open(file string) error {
-  return fmt.Errorf("file %q not found", file)
-}
-
-func use() {
-  if err := open("testfile.txt"); err != nil {
-    if strings.Contains(err.Error(), "not found") {
-      // handle
-    } else {
-      panic("unknown error")
-    }
-  }
-}
-```
-
-</td><td>
-
-```go
-type errNotFound struct {
-  file string
-}
-
-func (e errNotFound) Error() string {
-  return fmt.Sprintf("file %q not found", e.file)
-}
-
-func open(file string) error {
-  return errNotFound{file: file}
-}
-
-func use() {
-  if err := open("testfile.txt"); err != nil {
-    if _, ok := err.(errNotFound); ok {
-      // handle
-    } else {
-      panic("unknown error")
-    }
-  }
-}
-```
-
-</td></tr>
-</tbody></table>
-
-直接导出自定义错误类型时要小心，因为它们已成为程序包公共 API 的一部分。最好公开匹配器功能以检查错误。
 
 ```go
 // package foo
 
-type errNotFound struct {
-  file string
-}
-
-func (e errNotFound) Error() string {
-  return fmt.Sprintf("file %q not found", e.file)
-}
-
-func IsNotFoundError(err error) bool {
-  _, ok := err.(errNotFound)
-  return ok
-}
-
 func Open(file string) error {
-  return errNotFound{file: file}
+  return fmt.Errorf("file %q not found", file)
 }
 
 // package bar
 
-if err := foo.Open("foo"); err != nil {
-  if foo.IsNotFoundError(err) {
-    // handle
+if err := foo.Open("testfile.txt"); err != nil {
+  // Can't handle the error.
+  panic("unknown error")
+}
+```
+
+</td><td>
+
+```go
+// package foo
+
+type NotFoundError struct {
+  File string
+}
+
+func (e *NotFoundError) Error() string {
+  return fmt.Sprintf("file %q not found", e.File)
+}
+
+func Open(file string) error {
+  return &NotFoundError{File: file}
+}
+
+
+// package bar
+
+if err := foo.Open("testfile.txt"); err != nil {
+  var notFound *NotFoundError
+  if errors.As(err, &notFound) {
+    // handle the error
   } else {
     panic("unknown error")
   }
 }
 ```
 
-<!-- TODO: Exposing the information to callers with accessor functions. -->
+</td></tr>
+</tbody></table>
 
-### 错误包装 (Error Wrapping)
+请注意，如果您从包中导出错误变量或类型，
+它们将成为包的公共 API 的一部分。
 
-一个（函数/方法）调用失败时，有三种主要的错误传播方式：
+#### 错误包装
 
-- 如果没有要添加的其他上下文，并且您想要维护原始错误类型，则返回原始错误。
-- 添加上下文，使用 [`"pkg/errors".Wrap`] 以便错误消息提供更多上下文 ,[`"pkg/errors".Cause`] 可用于提取原始错误。
-- 如果调用者不需要检测或处理的特定错误情况，使用 [`fmt.Errorf`]。
+There are three main options for propagating errors if a call fails:
+如果调用失败，有三种主要的错误调用选项：
 
-建议在可能的地方添加上下文，以使您获得诸如“调用服务 foo：连接被拒绝”之类的更有用的错误，而不是诸如“连接被拒绝”之类的模糊错误。
+- 按原样返回原始错误
+- add context with `fmt.Errorf` and the `%w` verb
+- 使用`fmt.Errorf`和`%w`
+- 使用 `fmt.Errorf` 和 `%v` 
 
-在将上下文添加到返回的错误时，请避免使用“failed to”之类的短语以保持上下文简洁，这些短语会陈述明显的内容，并随着错误在堆栈中的渗透而逐渐堆积：
+如果没有要添加的其他上下文，则按原样返回原始错误。
+这将保留原始错误类型和消息。
+这非常适合底层错误消息有足够的信息来追踪它来自哪里的错误。
+
+否则，尽可能在错误消息中添加上下文
+这样就不会出现诸如“连接被拒绝”之类的模糊错误，
+您会收到更多有用的错误，例如“呼叫服务 foo：连接被拒绝”。
+
+使用 `fmt.Errorf` 为你的错误添加上下文，
+根据调用者是否应该能够匹配和提取根本原因，在 `%w` 或 `%v` 动词之间进行选择。
+
+- 如果调用者应该可以访问底层错误，请使用 `%w`。
+   对于大多数包装错误，这是一个很好的默认值，
+   但请注意，调用者可能会开始依赖此行为。因此，对于包装错误是已知`var`或类型的情况，请将其作为函数契约的一部分进行记录和测试。
+- 使用 `%v` 来混淆底层错误。
+  调用者将无法匹配它，但如果需要，您可以在将来切换到 `%w`。
+
+在为返回的错误添加上下文时，通过避免使用"failed to"之类的短语来保持上下文简洁，当错误通过堆栈向上渗透时，它会一层一层被堆积起来：
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1046,7 +1047,7 @@ if err := foo.Open("foo"); err != nil {
 s, err := store.New()
 if err != nil {
     return fmt.Errorf(
-        "failed to create new store: %v", err)
+        "failed to create new store: %w", err)
 }
 ```
 
@@ -1056,11 +1057,11 @@ if err != nil {
 s, err := store.New()
 if err != nil {
     return fmt.Errorf(
-        "new store: %v", err)
+        "new store: %w", err)
 }
 ```
 
-<tr><td>
+</td></tr><tr><td>
 
 ```
 failed to x: failed to y: failed to create new store: the error
@@ -1075,18 +1076,64 @@ x: y: new store: the error
 </td></tr>
 </tbody></table>
 
-但是，一旦将错误发送到另一个系统，就应该明确消息是错误消息（例如使用`err`标记，或在日志中以”Failed”为前缀）。
+然而，一旦错误被发送到另一个系统，应该清楚消息是一个错误（例如`err` 标签或日志中的"Failed"前缀）。
 
-另请参见 [Don't just check errors, handle them gracefully]. 不要只是检查错误，要优雅地处理错误
 
-[`"pkg/errors".Cause`]: https://godoc.org/github.com/pkg/errors#Cause
-[Don't just check errors, handle them gracefully]: https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
+另见[不要只检查错误，优雅地处理它们]。
 
-### 处理类型断言失败
+  [`"pkg/errors".Cause`]: https://godoc.org/github.com/pkg/errors#Cause
+  [Don't just check errors, handle them gracefully]: https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
 
-[type assertion] 的单个返回值形式针对不正确的类型将产生 panic。因此，请始终使用“comma ok”的惯用法。
+#### 错误命名
 
-[type assertion]: https://golang.org/ref/spec#Type_assertions
+对于存储为全局变量的错误值，
+根据是否导出，使用前缀 `Err` 或 `err`。
+请看指南 [对于未导出的顶层常量和变量，使用_作为前缀](#对于未导出的顶层常量和变量，使用_作为前缀)。
+
+```go
+var (
+  // 导出以下两个错误，以便此包的用户可以将它们与errors.Is 进行匹配。
+
+  ErrBrokenLink = errors.New("link is broken")
+  ErrCouldNotOpen = errors.New("could not open")
+
+  // 这个错误没有被导出，因为我们不想让它成为我们公共 API 的一部分。 我们可能仍然在带有错误的包内使用它。
+
+  errNotFound = errors.New("not found")
+)
+```
+
+对于自定义错误类型，请改用后缀 `Error`。
+
+```go
+// 同样，这个错误被导出，以便这个包的用户可以将它与errors.As 匹配。
+
+type NotFoundError struct {
+  File string
+}
+
+func (e *NotFoundError) Error() string {
+  return fmt.Sprintf("file %q not found", e.File)
+}
+
+// 并且这个错误没有被导出，因为我们不想让它成为公共 API 的一部分。 我们仍然可以在带有errors.As的包中使用它。
+type resolveError struct {
+  Path string
+}
+
+func (e *resolveError) Error() string {
+  return fmt.Sprintf("resolve %q", e.Path)
+}
+```
+
+### 处理断言失败
+
+[类型断言] 的单一返回值形式将在错误的
+类型。 因此，请始终使用“逗号 ok”习语。
+
+[类型断言] 的单一返回值形式将在错误类型上发生死机。 因此，请始终使用"comma ok"习语。
+
+  [type assertion]: https://golang.org/ref/spec#Type_assertions
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -2449,6 +2496,8 @@ const (
 
 </td></tr>
 </tbody></table>
+
+**Exception**:未导出的错误值可以使用不带下划线的前缀 `err`。 参见[错误命名](#错误命名)。
 
 ### 结构体中的嵌入
 
