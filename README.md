@@ -96,6 +96,10 @@ change.md
 
 - 添加有关将 `%w` 与 `%v` 与 `fmt.Errorf` 结合使用的指南，以及在何处使用 `errors.New` 或自定义错误类型。
 
+# 2022-01-05
+- 修复翻译错误
+- 修复部分失效的链接
+
 -->
 
 ## [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
@@ -140,7 +144,7 @@ change.md
     - [错误包装](#错误包装)
     - [错误命名](#错误命名)
   - [处理断言失败](#处理断言失败)
-  - [不要 panic](#不要-panic)
+  - [不要使用 panic](#不要使用-panic)
   - [使用 go.uber.org/atomic](#使用-gouberorgatomic)
   - [避免可变全局变量](#避免可变全局变量)
   - [避免在公共结构中嵌入类型](#避免在公共结构中嵌入类型)
@@ -815,7 +819,7 @@ newDay := t.AddDate(0 /* years */, 0 /* months */, 1 /* days */)
 maybeNewDay := t.Add(24 * time.Hour)
 ```
 
-#### 对外部系统使用 `time.Time` 和 `time.Duration` 
+#### 对外部系统使用 `time.Time` 和 `time.Duration`
 
 尽可能在与外部系统的交互中使用 `time.Duration` 和 `time.Time` 例如 :
 
@@ -1017,7 +1021,7 @@ There are three main options for propagating errors if a call fails:
 - 按原样返回原始错误
 - add context with `fmt.Errorf` and the `%w` verb
 - 使用`fmt.Errorf`和`%w`
-- 使用 `fmt.Errorf` 和 `%v` 
+- 使用 `fmt.Errorf` 和 `%v`
 
 如果没有要添加的其他上下文，则按原样返回原始错误。
 这将保留原始错误类型和消息。
@@ -1082,13 +1086,13 @@ x: y: new store: the error
 另见[不要只检查错误，优雅地处理它们]。
 
   [`"pkg/errors".Cause`]: https://godoc.org/github.com/pkg/errors#Cause
-  [Don't just check errors, handle them gracefully]: https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
+  [不要只检查错误，优雅地处理它们]: https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
 
 #### 错误命名
 
 对于存储为全局变量的错误值，
 根据是否导出，使用前缀 `Err` 或 `err`。
-请看指南 [对于未导出的顶层常量和变量，使用_作为前缀](#对于未导出的顶层常量和变量，使用_作为前缀)。
+请看指南 [对于未导出的顶层常量和变量，使用_作为前缀](#对于未导出的顶层常量和变量使用_作为前缀)。
 
 ```go
 var (
@@ -1128,12 +1132,9 @@ func (e *resolveError) Error() string {
 
 ### 处理断言失败
 
-[类型断言] 的单一返回值形式将在错误的
-类型。 因此，请始终使用“逗号 ok”习语。
+[类型断言] 将会在检测到不正确的类型时，以单一返回值形式返回 panic。 因此，请始终使用“逗号 ok”习语。
 
-[类型断言] 的单一返回值形式将在错误类型上发生死机。 因此，请始终使用"comma ok"习语。
-
-  [type assertion]: https://golang.org/ref/spec#Type_assertions
+  [类型断言]: https://golang.org/ref/spec#Type_assertions
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1159,11 +1160,11 @@ if !ok {
 <!-- TODO: There are a few situations where the single assignment form is
 fine. -->
 
-### 不要 panic
+### 不要使用 panic
 
-在生产环境中运行的代码必须避免出现 panic。panic 是 [cascading failures] 级联失败的主要根源 。如果发生错误，该函数必须返回错误，并允许调用方决定如何处理它。
+在生产环境中运行的代码必须避免出现 panic。panic 是 [级联失败] 的主要根源 。如果发生错误，该函数必须返回错误，并允许调用方决定如何处理它。
 
-[cascading failures]: https://en.wikipedia.org/wiki/Cascading_failure
+[级联失败]: https://en.wikipedia.org/wiki/Cascading_failure
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1300,7 +1301,7 @@ func (f *foo) isRunning() bool {
 
 ### 避免可变全局变量
 
-使用选择依赖注入方式避免改变全局变量。 
+使用选择依赖注入方式避免改变全局变量。
 既适用于函数指针又适用于其他值类型
 
 <table>
@@ -1474,15 +1475,15 @@ func (l *ConcreteList) Remove(e Entity) {
 
 ### 避免使用内置名称
 
-Go语言规范[language specification] 概述了几个内置的，
-不应在Go项目中使用的名称标识[predeclared identifiers]。
+Go [语言规范] 概述了几个内置的，
+不应在Go项目中使用的 [预先声明的标识符]。
 
 根据上下文的不同，将这些标识符作为名称重复使用，
 将在当前作用域（或任何嵌套作用域）中隐藏原始标识符，或者混淆代码。
 在最好的情况下，编译器会报错；在最坏的情况下，这样的代码可能会引入潜在的、难以恢复的错误。
 
-[language specification]: https://golang.org/ref/spec
-[predeclared identifiers]: https://golang.org/ref/spec#Predeclared_identifiers
+[语言规范]: https://golang.org/ref/spec
+[预先声明的标识符]: https://golang.org/ref/spec#Predeclared_identifiers
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1701,12 +1702,12 @@ BenchmarkGood-4   100000000    0.21s
 
 ### 主函数退出方式(Exit)
 
-Go程序使用[`os.Exit`] 或者 [`log.Fatal*`] 立即退出 (使用`panic`不是退出程序的好方法，请 [don't panic](#不要-panic).)
+Go程序使用[`os.Exit`] 或者 [`log.Fatal*`] 立即退出 (使用`panic`不是退出程序的好方法，请 [不要使用 panic](#不要使用-panic)。)
 
   [`os.Exit`]: https://golang.org/pkg/os/#Exit
   [`log.Fatal*`]: https://golang.org/pkg/log/#Fatal
 
-**仅在`main()`**中调用其中一个 `os.Exit` 或者 `log.Fatal*`。所有其他函数应将错误返回到信号失败中。
+**仅在`main()`** 中调用其中一个 `os.Exit` 或者 `log.Fatal*`。所有其他函数应将错误返回到信号失败中。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1764,8 +1765,8 @@ func readFile(path string) (string, error) {
 - 跳过清理：当函数退出程序时，会跳过已经进入`defer`队列里的函数调用。这增加了跳过重要清理任务的风险。
 #### 一次性退出
 
-如果可能的话，你的`main（）`函数中**最多一次** 调用 `os.Exit`或者`log.Fatal`。如果有多个错误场景停止程序执行，请将该逻辑放在单独的函数下并从中返回错误。
-这会缩短 `main()`函数，并将所有关键业务逻辑放入一个单独的、可测试的函数中。
+如果可能的话，你的`main（）`函数中 **最多一次** 调用 `os.Exit`或者`log.Fatal`。如果有多个错误场景停止程序执行，请将该逻辑放在单独的函数下并从中返回错误。
+这会缩短 `main()` 函数，并将所有关键业务逻辑放入一个单独的、可测试的函数中。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -2224,9 +2225,9 @@ import (
 - 不用复数。例如`net/url`，而不是`net/urls`。
 - 不要用“common”，“util”，“shared”或“lib”。这些是不好的，信息量不足的名称。
 
-另请参阅 [Package Names] 和 [Go 包样式指南].
+另请参阅 [Go 包命名规则] 和 [Go 包样式指南].
 
-[Package Names]: https://blog.golang.org/package-names
+[Go 包命名规则]: https://blog.golang.org/package-names
 [Go 包样式指南]: https://rakyll.org/style-packages/
 
 ### 函数名
@@ -2286,7 +2287,7 @@ import (
 
 因此，导出的函数应先出现在文件中，放在`struct`, `const`, `var`定义的后面。
 
-在定义类型之后，但在接收者的其余方法之前，可能会出现一个 `newXYZ()`/`NewXYZ()` 
+在定义类型之后，但在接收者的其余方法之前，可能会出现一个 `newXYZ()`/`NewXYZ()`
 
 由于函数是按接收者分组的，因此普通工具函数应在文件末尾出现。
 
@@ -2698,9 +2699,9 @@ s := "foo"
 </td></tr>
 </tbody></table>
 
-但是，在某些情况下，`var` 使用关键字时默认值会更清晰。例如，声明空切片。
+但是，在某些情况下，`var` 使用关键字时默认值会更清晰。例如，[声明空切片]。
 
-[Declaring Empty Slices]: https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
+[声明空切片]: https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -3070,8 +3071,8 @@ var user User
 </td></tr>
 </tbody></table>
 
-这将零值结构与那些具有类似于为[初始化 Maps]创建的,区别于非零值字段的结构区分开来，
-并与我们更喜欢的[declare empty slices][Declaring empty slices]方式相匹配。
+这将零值结构与那些具有类似于为 [初始化 Maps](#初始化-maps) 创建的,区别于非零值字段的结构区分开来，
+并与我们更喜欢的 [声明空切片] 方式相匹配。
 
 #### 初始化 Struct 引用
 
@@ -3485,7 +3486,7 @@ use one vs other -->
 
 ### Lint Runners
 
-我们推荐 [golangci-lint] 作为go-to lint的运行程序，这主要是因为它在较大的代码库中的性能以及能够同时配置和使用许多规范。这个repo有一个示例配置文件[.golangci.yml]和推荐的linter设置。
+我们推荐 [golangci-lint] 作为go-to lint的运行程序，这主要是因为它在较大的代码库中的性能以及能够同时配置和使用许多规范。这个repo有一个示例配置文件 [.golangci.yml] 和推荐的linter设置。
 
 golangci-lint 有[various-linters]可供使用。建议将上述linters作为基本set，我们鼓励团队添加对他们的项目有意义的任何附加linters。
 
