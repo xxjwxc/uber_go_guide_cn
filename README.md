@@ -112,7 +112,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2021-11-23 版本地址：[commit:#136](https://github.com/uber-go/guide/commit/2fdd2427228b63c742e2f03f79e251f5866c0775)
+  - 当前更新版本：2022-01-19 版本地址：[commit:#140](https://github.com/uber-go/guide/commit/c9b887c6a669b956d39dfb9dd1bd1e33a9c2cd97)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -2152,9 +2152,9 @@ const EnvVar = "MY_ENV"
 
 ```go
 func f() string {
-  var red = color.New(0xff0000)
-  var green = color.New(0x00ff00)
-  var blue = color.New(0x0000ff)
+  red := color.New(0xff0000)
+  green := color.New(0x00ff00)
+  blue := color.New(0x0000ff)
 
   ...
 }
@@ -2171,6 +2171,41 @@ func f() string {
   )
 
   ...
+}
+```
+
+</td></tr>
+</tbody></table>
+
+例外：如果变量声明与其他变量相邻，则应将变量声明（尤其是函数内部的声明）分组在一起。对一起声明的变量执行此操作，即使它们不相关。
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+func (c *client) request() {
+  caller := c.name
+  format := "json"
+  timeout := 5*time.Second
+  var err error
+  // ...
+}
+```
+
+</td><td>
+
+```go
+func (c *client) request() {
+  var (
+    caller  = c.name
+    format  = "json"
+    timeout = 5*time.Second
+    err error
+  )
+  
+  // ...
 }
 ```
 
