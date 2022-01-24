@@ -81,7 +81,7 @@ change.md
 - 添加有关指针接收器可调用性的说明
 
 # 2020-06-17
-- map和切片的联合指导
+- map 和切片的联合指导
 
 # 2020-09-15
 - Remove main panic
@@ -151,13 +151,13 @@ change.md
   - [避免使用内置名称](#避免使用内置名称)
   - [避免使用 `init()`](#避免使用-init)
   - [追加时优先指定切片容量](#追加时优先指定切片容量)
-  - [主函数退出方式(Exit)](#主函数退出方式exit)
+  - [主函数退出方式 (Exit)](#主函数退出方式exit)
     - [一次性退出](#一次性退出)
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
   - [指定容器容量](#指定容器容量)
-    - [指定Map容量提示](#指定map容量提示)
+    - [指定 Map 容量提示](#指定map容量提示)
     - [指定切片容量](#指定切片容量)
 - [规范](#规范)
   - [避免过长的行](#避免过长的行)
@@ -177,7 +177,7 @@ change.md
   - [本地变量声明](#本地变量声明)
   - [nil 是一个有效的 slice](#nil-是一个有效的-slice)
   - [缩小变量作用域](#缩小变量作用域)
-  - [避免参数语义不明确(Avoid Naked Parameters)](#避免参数语义不明确avoid-naked-parameters)
+  - [避免参数语义不明确 (Avoid Naked Parameters)](#避免参数语义不明确avoid-naked-parameters)
   - [使用原始字符串字面值，避免转义](#使用原始字符串字面值避免转义)
   - [初始化结构体](#初始化结构体)
     - [使用字段名初始化结构](#使用字段名初始化结构)
@@ -231,7 +231,7 @@ change.md
 1. 一个指向某些特定类型信息的指针。您可以将其视为"type"。
 2. 数据指针。如果存储的数据是指针，则直接存储。如果存储的数据是一个值，则存储指向该值的指针。
 
-如果希望接口方法修改基础数据，则必须使用指针传递(将对象指针赋值给接口变量)。
+如果希望接口方法修改基础数据，则必须使用指针传递 (将对象指针赋值给接口变量)。
 
 ```go
 type F interface {
@@ -246,8 +246,8 @@ type S2 struct{}
 
 func (s *S2) f() {}
 
-// f1.f()无法修改底层数据
-// f2.f() 可以修改底层数据,给接口变量f2赋值时使用的是对象指针
+// f1.f() 无法修改底层数据
+// f2.f() 可以修改底层数据，给接口变量 f2 赋值时使用的是对象指针
 var f1 F = S1{}
 var f2 F = &S2{}
 ```
@@ -256,13 +256,13 @@ var f2 F = &S2{}
 
 在编译时验证接口的符合性。这包括：
 
-- 将实现特定接口的导出类型作为接口API 的一部分进行检查
-- 实现同一接口的(导出和非导出)类型属于实现类型的集合
-- 任何违反接口合理性检查的场景,都会终止编译,并通知给用户
+- 将实现特定接口的导出类型作为接口 API 的一部分进行检查
+- 实现同一接口的 (导出和非导出) 类型属于实现类型的集合
+- 任何违反接口合理性检查的场景，都会终止编译，并通知给用户
 
-补充:上面3条是编译器对接口的检查机制,
-大体意思是错误使用接口会在编译期报错.
-所以可以利用这个机制让部分问题在编译期暴露.
+补充：上面 3 条是编译器对接口的检查机制，
+大体意思是错误使用接口会在编译期报错。
+所以可以利用这个机制让部分问题在编译期暴露。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -270,7 +270,7 @@ var f2 F = &S2{}
 <tr><td>
 
 ```go
-// 如果Handler没有实现http.Handler,会在运行时报错
+// 如果 Handler 没有实现 http.Handler，会在运行时报错
 type Handler struct {
   // ...
 }
@@ -289,7 +289,7 @@ type Handler struct {
   // ...
 }
 // 用于触发编译期的接口的合理性检查机制
-// 如果Handler没有实现http.Handler,会在编译期报错
+// 如果 Handler 没有实现 http.Handler，会在编译期报错
 var _ http.Handler = (*Handler)(nil)
 func (h *Handler) ServeHTTP(
   w http.ResponseWriter,
@@ -302,8 +302,8 @@ func (h *Handler) ServeHTTP(
 </td></tr>
 </tbody></table>
 
-如果 `*Handler` 与 `http.Handler` 的接口不匹配,
-那么语句 `var _ http.Handler = (*Handler)(nil)` 将无法编译通过.
+如果 `*Handler` 与 `http.Handler` 的接口不匹配，
+那么语句 `var _ http.Handler = (*Handler)(nil)` 将无法编译通过。
 
 赋值的右边应该是断言类型的零值。
 对于指针类型（如 `*Handler`）、切片和映射，这是 `nil`；
@@ -327,7 +327,7 @@ func (h LogHandler) ServeHTTP(
 
 使用值接收器的方法既可以通过值调用，也可以通过指针调用。
 
-带指针接收器的方法只能通过指针或 [addressable values]调用.
+带指针接收器的方法只能通过指针或 [addressable values] 调用。
 
 [addressable values]: https://golang.org/ref/spec#Method_values
 
@@ -361,7 +361,7 @@ sPtrs[1].Read()
 sPtrs[1].Write("test")
 ```
 
-类似的,即使方法有了值接收器,也同样可以用指针接收器来满足接口.
+类似的，即使方法有了值接收器，也同样可以用指针接收器来满足接口。
 
 ```go
 type F interface {
@@ -392,26 +392,26 @@ i = s2Ptr
 
 [Effective Go](https://golang.org/doc/effective_go.html) 中有一段关于 [pointers vs. values](https://golang.org/doc/effective_go.html#pointers_vs_values) 的精彩讲解。
 
-补充:
+补充：
 
 - 一个类型可以有值接收器方法集和指针接收器方法集
-  - 值接收器方法集是指针接收器方法集的子集,反之不是
+  - 值接收器方法集是指针接收器方法集的子集，反之不是
 - 规则
   - 值对象只可以使用值接收器方法集
   - 指针对象可以使用 值接收器方法集 + 指针接收器方法集
-- 接口的匹配(或者叫实现)
-  - 类型实现了接口的所有方法,叫匹配
-  - 具体的讲,要么是类型的值方法集匹配接口,要么是指针方法集匹配接口
+- 接口的匹配 (或者叫实现)
+  - 类型实现了接口的所有方法，叫匹配
+  - 具体的讲，要么是类型的值方法集匹配接口，要么是指针方法集匹配接口
 
-具体的匹配分两种:
+具体的匹配分两种：
 
 - 值方法集和接口匹配
-  - 给接口变量赋值的不管是值还是指针对象,都ok,因为都包含值方法集
+  - 给接口变量赋值的不管是值还是指针对象，都 ok，因为都包含值方法集
 - 指针方法集和接口匹配
-  - 只能将指针对象赋值给接口变量,因为只有指针方法集和接口匹配
-  - 如果将值对象赋值给接口变量,会在编译期报错(会触发接口合理性检查机制)
+  - 只能将指针对象赋值给接口变量，因为只有指针方法集和接口匹配
+  - 如果将值对象赋值给接口变量，会在编译期报错 (会触发接口合理性检查机制)
 
-为啥 i = s2Val 会报错,因为值方法集和接口不匹配.
+为啥 i = s2Val 会报错，因为值方法集和接口不匹配。
 
 ### 零值 Mutex 是有效的
 
@@ -791,7 +791,7 @@ func poll(delay int) {
     time.Sleep(time.Duration(delay) * time.Millisecond)
   }
 }
-poll(10) // 是几秒钟还是几毫秒?
+poll(10) // 是几秒钟还是几毫秒？
 ```
 
 </td><td>
@@ -809,7 +809,7 @@ poll(10*time.Second)
 </td></tr>
 </tbody></table>
 
-回到第一个例子，在一个时间瞬间加上 24 小时，我们用于添加时间的方法取决于意图。如果我们想要下一个日历日(当前天的下一天)的同一个时间点，我们应该使用 [`Time.AddDate`]。但是，如果我们想保证某一时刻比前一时刻晚 24 小时，我们应该使用 [`Time.Add`]。
+回到第一个例子，在一个时间瞬间加上 24 小时，我们用于添加时间的方法取决于意图。如果我们想要下一个日历日 (当前天的下一天) 的同一个时间点，我们应该使用 [`Time.AddDate`]。但是，如果我们想保证某一时刻比前一时刻晚 24 小时，我们应该使用 [`Time.Add`]。
 
 [`Time.AddDate`]: https://golang.org/pkg/time/#Time.AddDate
 [`Time.Add`]: https://golang.org/pkg/time/#Time.Add
@@ -894,7 +894,7 @@ type Config struct {
 [`errors.Is`]: https://golang.org/pkg/errors/#Is
 [`errors.As`]: https://golang.org/pkg/errors/#As
 
-| 错误匹配? | 错误消息 | 指导                           |
+| 错误匹配？| 错误消息 | 指导                           |
 |-----------------|---------------|-------------------------------------|
 | No              | static        | [`errors.New`]                      |
 | No              | dynamic       | [`fmt.Errorf`]                      |
@@ -1083,7 +1083,7 @@ x: y: new store: the error
 然而，一旦错误被发送到另一个系统，应该清楚消息是一个错误（例如`err` 标签或日志中的"Failed"前缀）。
 
 
-另见[不要只检查错误，优雅地处理它们]。
+另见 [不要只检查错误，优雅地处理它们]。
 
   [`"pkg/errors".Cause`]: https://godoc.org/github.com/pkg/errors#Cause
   [不要只检查错误，优雅地处理它们]: https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
@@ -1096,7 +1096,7 @@ x: y: new store: the error
 
 ```go
 var (
-  // 导出以下两个错误，以便此包的用户可以将它们与errors.Is 进行匹配。
+  // 导出以下两个错误，以便此包的用户可以将它们与 errors.Is 进行匹配。
 
   ErrBrokenLink = errors.New("link is broken")
   ErrCouldNotOpen = errors.New("could not open")
@@ -1110,7 +1110,7 @@ var (
 对于自定义错误类型，请改用后缀 `Error`。
 
 ```go
-// 同样，这个错误被导出，以便这个包的用户可以将它与errors.As 匹配。
+// 同样，这个错误被导出，以便这个包的用户可以将它与 errors.As 匹配。
 
 type NotFoundError struct {
   File string
@@ -1120,7 +1120,7 @@ func (e *NotFoundError) Error() string {
   return fmt.Sprintf("file %q not found", e.File)
 }
 
-// 并且这个错误没有被导出，因为我们不想让它成为公共 API 的一部分。 我们仍然可以在带有errors.As的包中使用它。
+// 并且这个错误没有被导出，因为我们不想让它成为公共 API 的一部分。 我们仍然可以在带有 errors.As 的包中使用它。
 type resolveError struct {
   Path string
 }
@@ -1476,7 +1476,7 @@ func (l *ConcreteList) Remove(e Entity) {
 ### 避免使用内置名称
 
 Go [语言规范] 概述了几个内置的，
-不应在Go项目中使用的 [预先声明的标识符]。
+不应在 Go 项目中使用的 [预先声明的标识符]。
 
 根据上下文的不同，将这些标识符作为名称重复使用，
 将在当前作用域（或任何嵌套作用域）中隐藏原始标识符，或者混淆代码。
@@ -1595,7 +1595,7 @@ func init() {
 var _defaultFoo = Foo{
     // ...
 }
-// or, 为了更好的可测试性:
+// or，为了更好的可测试性：
 var _defaultFoo = defaultFoo()
 func defaultFoo() Foo {
     return Foo{
@@ -1649,7 +1649,7 @@ func loadConfig() Config {
 
 - 不能表示为单个赋值的复杂表达式。
 - 可插入的钩子，如`database/sql`、编码类型注册表等。
-- 对[Google Cloud Functions]和其他形式的确定性预计算的优化。
+- 对 [Google Cloud Functions] 和其他形式的确定性预计算的优化。
 
   [Google Cloud Functions]: https://cloud.google.com/functions/docs/bestpractices/tips#use_global_variables_to_reuse_objects_in_future_invocations
 
@@ -1700,9 +1700,9 @@ BenchmarkGood-4   100000000    0.21s
 </td></tr>
 </tbody></table>
 
-### 主函数退出方式(Exit)
+### 主函数退出方式 (Exit)
 
-Go程序使用[`os.Exit`] 或者 [`log.Fatal*`] 立即退出 (使用`panic`不是退出程序的好方法，请 [不要使用 panic](#不要使用-panic)。)
+Go 程序使用 [`os.Exit`] 或者 [`log.Fatal*`] 立即退出 (使用`panic`不是退出程序的好方法，请 [不要使用 panic](#不要使用-panic)。)
 
   [`os.Exit`]: https://golang.org/pkg/os/#Exit
   [`log.Fatal*`]: https://golang.org/pkg/log/#Fatal
@@ -1786,8 +1786,8 @@ func main() {
     log.Fatal(err)
   }
   defer f.Close()
-  // 如果我们调用log.Fatal 在这条线之后
-  // f.Close 将会被执行.
+  // 如果我们调用 log.Fatal 在这条线之后
+  // f.Close 将会被执行。
   b, err := ioutil.ReadAll(f)
   if err != nil {
     log.Fatal(err)
@@ -1916,7 +1916,7 @@ BenchmarkGood-4  500000000   3.25 ns/op
 
 尽可能指定容器容量，以便为容器预先分配内存。这将在添加元素时最小化后续分配（通过复制和调整容器大小）。
 
-#### 指定Map容量提示
+#### 指定 Map 容量提示
 
 在尽可能的情况下，在使用 `make()` 初始化的时候提供容量信息
 
@@ -1924,11 +1924,11 @@ BenchmarkGood-4  500000000   3.25 ns/op
 make(map[T1]T2, hint)
 ```
 
-向`make()`提供容量提示会在初始化时尝试调整map的大小，这将减少在将元素添加到map时为map重新分配内存。
+向`make()`提供容量提示会在初始化时尝试调整 map 的大小，这将减少在将元素添加到 map 时为 map 重新分配内存。
 
 
-注意，与slices不同。map capacity提示并不保证完全的抢占式分配，而是用于估计所需的hashmap bucket的数量。
-因此，在将元素添加到map时，甚至在指定map容量时，仍可能发生分配。
+注意，与 slices 不同。map capacity 提示并不保证完全的抢占式分配，而是用于估计所需的 hashmap bucket 的数量。
+因此，在将元素添加到 map 时，甚至在指定 map 容量时，仍可能发生分配。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1976,8 +1976,8 @@ for _, f := range files {
 make([]T, length, capacity)
 ```
 
-与maps不同，slice capacity不是一个提示：编译器将为提供给`make()`的slice的容量分配足够的内存，
-这意味着后续的append()`操作将导致零分配（直到slice的长度与容量匹配，在此之后，任何append都可能调整大小以容纳其他元素）。
+与 maps 不同，slice capacity 不是一个提示：编译器将为提供给`make()`的 slice 的容量分配足够的内存，
+这意味着后续的 append()`操作将导致零分配（直到 slice 的长度与容量匹配，在此之后，任何 append 都可能调整大小以容纳其他元素）。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -2025,7 +2025,7 @@ BenchmarkGood-4   100000000    0.21s
 
 避免使用需要读者水平滚动或过度转动头部的代码行。
 
-我们建议将行长度限制为 **99 characters** (99个字符).
+我们建议将行长度限制为 **99 characters** (99 个字符).
 作者应该在达到这个限制之前换行，
 但这不是硬性限制。
 允许代码超过此限制。
@@ -2577,7 +2577,7 @@ type Client struct {
 - 作为嵌入内部类型的副作用，从外部类型公开不相关的函数或字段。
 - 公开未导出的类型。
 - 影响外部类型的复制形式。
-- 更改外部类型的API或类型语义。
+- 更改外部类型的 API 或类型语义。
 - 嵌入内部类型的非规范形式。
 - 公开外部类型的实现详细信息。
 - 允许用户观察或控制类型内部。
@@ -2585,7 +2585,7 @@ type Client struct {
 
 简单地说，有意识地和有目的地嵌入。一种很好的测试体验是，
 "是否所有这些导出的内部方法/字段都将直接添加到外部类型"
-如果答案是`some`或`no`，不要嵌入内部类型-而是使用字段。
+如果答案是`some`或`no`，不要嵌入内部类型 - 而是使用字段。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -2595,7 +2595,7 @@ type Client struct {
 ```go
 type A struct {
     // Bad: A.Lock() and A.Unlock() 现在可用
-    // 不提供任何功能性好处，并允许用户控制有关A的内部细节。
+    // 不提供任何功能性好处，并允许用户控制有关 A 的内部细节。
     sync.Mutex
 }
 ```
@@ -2605,7 +2605,7 @@ type A struct {
 ```go
 type countingWriteCloser struct {
     // Good: Write() 在外层提供用于特定目的，
-    // 并且委托工作到内部类型的Write()中。
+    // 并且委托工作到内部类型的 Write() 中。
     io.WriteCloser
     count int
 }
@@ -2859,7 +2859,7 @@ func f(list []int) {
   </td></tr>
   </tbody></table>
 
-记住，虽然nil切片是有效的切片，但它不等于长度为0的切片（一个为nil，另一个不是），并且在不同的情况下（例如序列化），这两个切片的处理方式可能不同。
+记住，虽然 nil 切片是有效的切片，但它不等于长度为 0 的切片（一个为 nil，另一个不是），并且在不同的情况下（例如序列化），这两个切片的处理方式可能不同。
 
 ### 缩小变量作用域
 
@@ -2928,7 +2928,7 @@ return nil
 </td></tr>
 </tbody></table>
 
-### 避免参数语义不明确(Avoid Naked Parameters)
+### 避免参数语义不明确 (Avoid Naked Parameters)
 
 函数调用中的`意义不明确的参数`可能会损害可读性。当参数名称的含义不明显时，请为参数添加 C 样式注释 (`/* ... */`)
 
@@ -3003,7 +3003,7 @@ wantError := `unknown error:"test"`
 
 #### 使用字段名初始化结构
 
-初始化结构时，几乎应该始终指定字段名。目前由[`go vet`]强制执行。
+初始化结构时，几乎应该始终指定字段名。目前由 [`go vet`] 强制执行。
 
 [`go vet`]: https://golang.org/cmd/vet/
 
@@ -3029,7 +3029,7 @@ k := User{
 </td></tr>
 </tbody></table>
 
-例外：当有3个或更少的字段时，测试表中的字段名*may*可以省略。
+例外：当有 3 个或更少的字段时，测试表中的字段名*may*可以省略。
 
 ```go
 tests := []struct{
@@ -3106,7 +3106,7 @@ var user User
 </td></tr>
 </tbody></table>
 
-这将零值结构与那些具有类似于为 [初始化 Maps](#初始化-maps) 创建的,区别于非零值字段的结构区分开来，
+这将零值结构与那些具有类似于为 [初始化 Maps](#初始化-maps) 创建的，区别于非零值字段的结构区分开来，
 并与我们更喜欢的 [声明空切片] 方式相匹配。
 
 #### 初始化 Struct 引用
@@ -3179,7 +3179,7 @@ var (
 </td></tr>
 </tbody></table>
 
-在尽可能的情况下，请在初始化时提供 map 容量大小，详细请看 [指定Map容量提示](#指定Map容量提示)。
+在尽可能的情况下，请在初始化时提供 map 容量大小，详细请看 [指定 Map 容量提示](#指定Map容量提示)。
 
 
 另外，如果 map 包含固定的元素列表，则使用 map literals(map 初始化列表) 初始化映射。
@@ -3487,7 +3487,7 @@ func Open(
 }
 ```
 
-注意: 还有一种使用闭包实现这个模式的方法，但是我们相信上面的模式为作者提供了更多的灵活性，并且更容易对用户进行调试和测试。特别是，在不可能进行比较的情况下它允许在测试和模拟中对选项进行比较。此外，它还允许选项实现其他接口，包括 `fmt.Stringer`，允许用户读取选项的字符串表示形式。
+注意：还有一种使用闭包实现这个模式的方法，但是我们相信上面的模式为作者提供了更多的灵活性，并且更容易对用户进行调试和测试。特别是，在不可能进行比较的情况下它允许在测试和模拟中对选项进行比较。此外，它还允许选项实现其他接口，包括 `fmt.Stringer`，允许用户读取选项的字符串表示形式。
 
 还可以参考下面资料：
 
@@ -3502,9 +3502,9 @@ use one vs other -->
 
 ## Linting
 
-比任何 "blessed" linter 集更重要的是，lint在一个代码库中始终保持一致。
+比任何 "blessed" linter 集更重要的是，lint 在一个代码库中始终保持一致。
 
-我们建议至少使用以下linters，因为我认为它们有助于发现最常见的问题，并在不需要规定的情况下为代码质量建立一个高标准：
+我们建议至少使用以下 linters，因为我认为它们有助于发现最常见的问题，并在不需要规定的情况下为代码质量建立一个高标准：
 
 - [errcheck] 以确保错误得到处理
 - [goimports] 格式化代码和管理 imports
@@ -3521,9 +3521,9 @@ use one vs other -->
 
 ### Lint Runners
 
-我们推荐 [golangci-lint] 作为go-to lint的运行程序，这主要是因为它在较大的代码库中的性能以及能够同时配置和使用许多规范。这个repo有一个示例配置文件 [.golangci.yml] 和推荐的linter设置。
+我们推荐 [golangci-lint] 作为 go-to lint 的运行程序，这主要是因为它在较大的代码库中的性能以及能够同时配置和使用许多规范。这个 repo 有一个示例配置文件 [.golangci.yml] 和推荐的 linter 设置。
 
-golangci-lint 有[various-linters]可供使用。建议将上述linters作为基本set，我们鼓励团队添加对他们的项目有意义的任何附加linters。
+golangci-lint 有 [various-linters] 可供使用。建议将上述 linters 作为基本 set，我们鼓励团队添加对他们的项目有意义的任何附加 linters。
 
 [golangci-lint]: https://github.com/golangci/golangci-lint
 [.golangci.yml]: https://github.com/uber-go/guide/blob/master/.golangci.yml
