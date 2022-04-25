@@ -100,6 +100,10 @@ change.md
 - 修复翻译错误
 - 修复部分失效的链接
 
+# 2022-03-30
+
+- 添加有关在封送结构中使用字段标记的指导。
+
 -->
 
 ## [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
@@ -151,13 +155,14 @@ change.md
   - [避免使用内置名称](#避免使用内置名称)
   - [避免使用 `init()`](#避免使用-init)
   - [追加时优先指定切片容量](#追加时优先指定切片容量)
-  - [主函数退出方式 (Exit)](#主函数退出方式exit)
+  - [主函数退出方式 (Exit)](#主函数退出方式-exit)
     - [一次性退出](#一次性退出)
+  - [在序列化结构中使用字段标记](#在序列化结构中使用字段标记)
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
   - [指定容器容量](#指定容器容量)
-    - [指定 Map 容量提示](#指定map容量提示)
+    - [指定 Map 容量提示](#指定-map-容量提示)
     - [指定切片容量](#指定切片容量)
 - [规范](#规范)
   - [避免过长的行](#避免过长的行)
@@ -177,7 +182,7 @@ change.md
   - [本地变量声明](#本地变量声明)
   - [nil 是一个有效的 slice](#nil-是一个有效的-slice)
   - [缩小变量作用域](#缩小变量作用域)
-  - [避免参数语义不明确 (Avoid Naked Parameters)](#避免参数语义不明确avoid-naked-parameters)
+  - [避免参数语义不明确 (Avoid Naked Parameters)](#避免参数语义不明确-avoid-naked-parameters)
   - [使用原始字符串字面值，避免转义](#使用原始字符串字面值避免转义)
   - [初始化结构体](#初始化结构体)
     - [使用字段名初始化结构](#使用字段名初始化结构)
@@ -1827,6 +1832,49 @@ func run() error {
 </td></tr>
 </tbody></table>
 
+### 在序列化结构中使用字段标记
+
+任何序列化到JSON、YAML、，
+或其他支持基于标记的字段命名的格式应使用相关标记进行注释。
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+type Stock struct {
+  Price int
+  Name  string
+}
+bytes, err := json.Marshal(Stock{
+  Price: 137,
+  Name:  "UBER",
+})
+```
+
+</td><td>
+
+```go
+type Stock struct {
+  Price int    `json:"price"`
+  Name  string `json:"name"`
+  // Safe to rename Name to Symbol.
+}
+bytes, err := json.Marshal(Stock{
+  Price: 137,
+  Name:  "UBER",
+})
+```
+
+</td></tr>
+</tbody></table>
+
+理论上：
+结构的序列化形式是不同系统之间的契约。
+对序列化表单结构（包括字段名）的更改会破坏此约定。在标记中指定字段名使约定明确，
+它还可以通过重构或重命名字段来防止意外违反约定。
+
 ## 性能
 
 性能方面的特定准则只适用于高频场景。
@@ -2204,7 +2252,6 @@ func (c *client) request() {
     timeout = 5*time.Second
     err error
   )
-  
   // ...
 }
 ```
@@ -3355,6 +3402,28 @@ for _, tt := range tests {
   // ...
 }
 ```
+
+并行测试，比如一些专门的循环（例如，生成goroutine或捕获引用作为循环体的一部分的那些循环）
+必须注意在循环的范围内显式地分配循环变量，以确保它们保持预期的值。
+
+```go
+tests := []struct{
+  give string
+  // ...
+}{
+  // ...
+}
+for _, tt := range tests {
+  tt := tt // for t.Parallel
+  t.Run(tt.give, func(t *testing.T) {
+    t.Parallel()
+    // ...
+  })
+}
+```
+
+在上面的例子中，由于下面使用了`t.Parallel()`，我们必须声明一个作用域为循环迭代的`tt`变量。
+如果我们不这样做，大多数或所有测试都会收到一个意外的`tt`值，或者一个在运行时发生变化的值。
 
 ### 功能选项
 
