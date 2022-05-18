@@ -178,7 +178,6 @@ change.md
   - [顶层变量声明](#顶层变量声明)
   - [对于未导出的顶层常量和变量，使用_作为前缀](#对于未导出的顶层常量和变量使用_作为前缀)
   - [结构体中的嵌入](#结构体中的嵌入)
-  - [使用字段名初始化结构体](#使用字段名初始化结构体)
   - [本地变量声明](#本地变量声明)
   - [nil 是一个有效的 slice](#nil-是一个有效的-slice)
   - [缩小变量作用域](#缩小变量作用域)
@@ -2718,46 +2717,6 @@ type Client struct {
 
 </td></tr>
 </tbody></table>
-
-### 使用字段名初始化结构体
-
-初始化结构体时，应该指定字段名称。现在由 [`go vet`] 强制执行。
-
-[`go vet`]: https://golang.org/cmd/vet/
-
-<table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
-<tbody>
-<tr><td>
-
-```go
-k := User{"John", "Doe", true}
-```
-
-</td><td>
-
-```go
-k := User{
-    FirstName: "John",
-    LastName: "Doe",
-    Admin: true,
-}
-```
-
-</td></tr>
-</tbody></table>
-
-例外：如果有 3 个或更少的字段，则可以在测试表中省略字段名称。
-
-```go
-tests := []struct{
-  op Operation
-  want string
-}{
-  {Add, "add"},
-  {Subtract, "subtract"},
-}
-```
 
 ### 本地变量声明
 
