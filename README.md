@@ -1019,13 +1019,11 @@ if err := foo.Open("testfile.txt"); err != nil {
 
 #### 错误包装
 
-There are three main options for propagating errors if a call fails:
-如果调用失败，有三种主要的错误调用选项：
+如果调用其他方法时出现错误, 通常有三种处理方式可以选择：
 
-- 按原样返回原始错误
-- add context with `fmt.Errorf` and the `%w` verb
-- 使用`fmt.Errorf`和`%w`
-- 使用 `fmt.Errorf` 和 `%v`
+- 将原始错误原样返回
+- 使用 `fmt.Errorf` 搭配 `%w` 将错误添加进上下文后返回
+- 使用 `fmt.Errorf` 搭配 `%v` 将错误添加进上下文后返回
 
 如果没有要添加的其他上下文，则按原样返回原始错误。
 这将保留原始错误类型和消息。
