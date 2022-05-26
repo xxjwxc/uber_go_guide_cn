@@ -116,7 +116,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2022-04-25 版本地址：[commit:#148](https://github.com/uber-go/guide/commit/6bc36c4abe3e3c26b527ea71222ce96e66df36d9)
+  - 当前更新版本：2022-05-25 版本地址：[commit:#150](https://github.com/uber-go/guide/commit/6e7643ee10e8808b9088e3f3f96f6e499c1be0ca)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -2531,8 +2531,6 @@ var _e error = F()
 
 在未导出的顶级`vars`和`consts`， 前面加上前缀_，以使它们在使用时明确表示它们是全局符号。
 
-例外：未导出的错误值，应以`err`开头。
-
 基本依据：顶级变量和常量具有包范围作用域。使用通用名称可能很容易在其他文件中意外使用错误的值。
 
 <table>
@@ -2574,7 +2572,7 @@ const (
 </td></tr>
 </tbody></table>
 
-**Exception**:未导出的错误值可以使用不带下划线的前缀 `err`。 参见[错误命名](#错误命名)。
+**例外**：未导出的错误值可以使用不带下划线的前缀 `err`。 参见[错误命名](#错误命名)。
 
 ### 结构体中的嵌入
 
