@@ -116,7 +116,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2022-05-25 版本地址：[commit:#150](https://github.com/uber-go/guide/commit/6e7643ee10e8808b9088e3f3f96f6e499c1be0ca)
+  - 当前更新版本：2022-05-25 版本地址：[commit:#153](https://github.com/uber-go/guide/commit/8445ac63507533d6d74b88e30ea4240f9b2e7a4b)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -215,6 +215,7 @@ change.md
 2. [Go Common Mistakes](https://github.com/golang/go/wiki/CommonMistakes)
 3. [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
 
+我们的目标是使代码示例能够准确地用于Go的两个发布版本 [releases](https://go.dev/doc/devel/release).
 
 所有代码都应该通过`golint`和`go vet`的检查并无错误。我们建议您将编辑器设置为：
 
@@ -1224,7 +1225,7 @@ var _statusTemplate = template.Must(template.New("name").Parse("_statusHTML"))
 ```go
 // func TestFoo(t *testing.T)
 
-f, err := ioutil.TempFile("", "test")
+f, err := os.CreateTemp("", "test")
 if err != nil {
   panic("failed to set up test")
 }
@@ -1235,7 +1236,7 @@ if err != nil {
 ```go
 // func TestFoo(t *testing.T)
 
-f, err := ioutil.TempFile("", "test")
+f, err := os.CreateTemp("", "test")
 if err != nil {
   t.Fatal("failed to set up test")
 }
@@ -1618,7 +1619,7 @@ func init() {
     // Bad: 基于当前目录
     cwd, _ := os.Getwd()
     // Bad: I/O
-    raw, _ := ioutil.ReadFile(
+    raw, _ := os.ReadFile(
         path.Join(cwd, "config", "config.yaml"),
     )
     yaml.Unmarshal(raw, &_config)
@@ -1634,7 +1635,7 @@ type Config struct {
 func loadConfig() Config {
     cwd, err := os.Getwd()
     // handle err
-    raw, err := ioutil.ReadFile(
+    raw, err := os.ReadFile(
         path.Join(cwd, "config", "config.yaml"),
     )
     // handle err
@@ -1726,7 +1727,7 @@ func readFile(path string) string {
   if err != nil {
     log.Fatal(err)
   }
-  b, err := ioutil.ReadAll(f)
+  b, err := os.ReadAll(f)
   if err != nil {
     log.Fatal(err)
   }
@@ -1749,7 +1750,7 @@ func readFile(path string) (string, error) {
   if err != nil {
     return "", err
   }
-  b, err := ioutil.ReadAll(f)
+  b, err := os.ReadAll(f)
   if err != nil {
     return "", err
   }
@@ -1790,7 +1791,7 @@ func main() {
   defer f.Close()
   // 如果我们调用 log.Fatal 在这条线之后
   // f.Close 将会被执行。
-  b, err := ioutil.ReadAll(f)
+  b, err := os.ReadAll(f)
   if err != nil {
     log.Fatal(err)
   }
@@ -1818,7 +1819,7 @@ func run() error {
     return err
   }
   defer f.Close()
-  b, err := ioutil.ReadAll(f)
+  b, err := os.ReadAll(f)
   if err != nil {
     return err
   }
@@ -1983,7 +1984,7 @@ make(map[T1]T2, hint)
 ```go
 m := make(map[string]os.FileInfo)
 
-files, _ := ioutil.ReadDir("./files")
+files, _ := os.ReadDir("./files")
 for _, f := range files {
     m[f.Name()] = f
 }
@@ -1993,7 +1994,7 @@ for _, f := range files {
 
 ```go
 
-files, _ := ioutil.ReadDir("./files")
+files, _ := os.ReadDir("./files")
 
 m := make(map[string]os.FileInfo, len(files))
 for _, f := range files {
@@ -2873,7 +2874,7 @@ func f(list []int) {
 <tr><td>
 
 ```go
-err := ioutil.WriteFile(name, data, 0644)
+err := os.WriteFile(name, data, 0644)
 if err != nil {
  return err
 }
@@ -2882,7 +2883,7 @@ if err != nil {
 </td><td>
 
 ```go
-if err := ioutil.WriteFile(name, data, 0644); err != nil {
+if err := os.WriteFile(name, data, 0644); err != nil {
  return err
 }
 ```
@@ -2898,7 +2899,7 @@ if err := ioutil.WriteFile(name, data, 0644); err != nil {
 <tr><td>
 
 ```go
-if data, err := ioutil.ReadFile(name); err == nil {
+if data, err := os.ReadFile(name); err == nil {
   err = cfg.Decode(data)
   if err != nil {
     return err
@@ -2914,7 +2915,7 @@ if data, err := ioutil.ReadFile(name); err == nil {
 </td><td>
 
 ```go
-data, err := ioutil.ReadFile(name)
+data, err := os.ReadFile(name)
 if err != nil {
    return err
 }
