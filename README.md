@@ -1886,7 +1886,6 @@ Goroutines 是轻量级的，但它们不是免费的：
 虽然这些成本对于 Goroutines 的使用来说很小，但当它们在没有受控生命周期的情况下大量生成时会导致严重的性能问题。
 具有非托管生命周期的 Goroutines 也可能导致其他问题，例如防止未使用的对象被垃圾回收并保留不再使用的资源。
 
-Therefore, do not leak goroutines in production code.
 因此，不要在代码中泄漏 goroutine。
 使用 [go.uber.org/goleak](https://pkg.go.dev/go.uber.org/goleak)
 来测试可能产生 goroutine 的包内的 goroutine 泄漏。
