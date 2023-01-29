@@ -81,7 +81,7 @@ change.md
 - 添加有关指针接收器可调用性的说明
 
 # 2020-06-17
-- map和切片的联合指导
+- map 和切片的联合指导
 
 # 2020-09-15
 - Remove main panic
@@ -100,6 +100,13 @@ change.md
 - 修复翻译错误
 - 修复部分失效的链接
 
+# 2022-03-30
+
+- 添加有关在封送结构中使用字段标记的指导。
+- 
+# 2022-10-18
+
+- 管理goroutine生命周期的指导.
 -->
 
 ## [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
@@ -112,7 +119,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2021-11-23 版本地址：[commit:#136](https://github.com/uber-go/guide/commit/2fdd2427228b63c742e2f03f79e251f5866c0775)
+  - 当前更新版本：2022-10-19 版本地址：[commit:#158](https://github.com/uber-go/guide/commit/4478e672bddf9d4f7ca4a561ab0779e08e469577)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -151,13 +158,17 @@ change.md
   - [避免使用内置名称](#避免使用内置名称)
   - [避免使用 `init()`](#避免使用-init)
   - [追加时优先指定切片容量](#追加时优先指定切片容量)
-  - [主函数退出方式(Exit)](#主函数退出方式exit)
+  - [主函数退出方式 (Exit)](#主函数退出方式-exit)
     - [一次性退出](#一次性退出)
+  - [在序列化结构中使用字段标记](#在序列化结构中使用字段标记)
+  - [不要一劳永逸地使用 goroutine](#不要一劳永逸地使用-goroutine)
+    - [等待 goroutines 退出](#等待-goroutines-退出)
+    - [不要在 `init()` 使用 goroutines](#不要在-init-使用-goroutines)
 - [性能](#性能)
   - [优先使用 strconv 而不是 fmt](#优先使用-strconv-而不是-fmt)
   - [避免字符串到字节的转换](#避免字符串到字节的转换)
   - [指定容器容量](#指定容器容量)
-    - [指定Map容量提示](#指定map容量提示)
+    - [指定 Map 容量提示](#指定-map-容量提示)
     - [指定切片容量](#指定切片容量)
 - [规范](#规范)
   - [避免过长的行](#避免过长的行)
@@ -173,11 +184,10 @@ change.md
   - [顶层变量声明](#顶层变量声明)
   - [对于未导出的顶层常量和变量，使用_作为前缀](#对于未导出的顶层常量和变量使用_作为前缀)
   - [结构体中的嵌入](#结构体中的嵌入)
-  - [使用字段名初始化结构体](#使用字段名初始化结构体)
   - [本地变量声明](#本地变量声明)
   - [nil 是一个有效的 slice](#nil-是一个有效的-slice)
   - [缩小变量作用域](#缩小变量作用域)
-  - [避免参数语义不明确(Avoid Naked Parameters)](#避免参数语义不明确avoid-naked-parameters)
+  - [避免参数语义不明确 (Avoid Naked Parameters)](#避免参数语义不明确-avoid-naked-parameters)
   - [使用原始字符串字面值，避免转义](#使用原始字符串字面值避免转义)
   - [初始化结构体](#初始化结构体)
     - [使用字段名初始化结构](#使用字段名初始化结构)
@@ -211,6 +221,7 @@ change.md
 2. [Go Common Mistakes](https://github.com/golang/go/wiki/CommonMistakes)
 3. [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
 
+我们的目标是使代码示例能够准确地用于Go的两个发布版本 [releases](https://go.dev/doc/devel/release).
 
 所有代码都应该通过`golint`和`go vet`的检查并无错误。我们建议您将编辑器设置为：
 
@@ -231,7 +242,7 @@ change.md
 1. 一个指向某些特定类型信息的指针。您可以将其视为"type"。
 2. 数据指针。如果存储的数据是指针，则直接存储。如果存储的数据是一个值，则存储指向该值的指针。
 
-如果希望接口方法修改基础数据，则必须使用指针传递(将对象指针赋值给接口变量)。
+如果希望接口方法修改基础数据，则必须使用指针传递 (将对象指针赋值给接口变量)。
 
 ```go
 type F interface {
@@ -246,8 +257,8 @@ type S2 struct{}
 
 func (s *S2) f() {}
 
-// f1.f()无法修改底层数据
-// f2.f() 可以修改底层数据,给接口变量f2赋值时使用的是对象指针
+// f1.f() 无法修改底层数据
+// f2.f() 可以修改底层数据，给接口变量 f2 赋值时使用的是对象指针
 var f1 F = S1{}
 var f2 F = &S2{}
 ```
@@ -279,13 +290,13 @@ test(*m)//错误
 
 在编译时验证接口的符合性。这包括：
 
-- 将实现特定接口的导出类型作为接口API 的一部分进行检查
-- 实现同一接口的(导出和非导出)类型属于实现类型的集合
-- 任何违反接口合理性检查的场景,都会终止编译,并通知给用户
+- 将实现特定接口的导出类型作为接口 API 的一部分进行检查
+- 实现同一接口的 (导出和非导出) 类型属于实现类型的集合
+- 任何违反接口合理性检查的场景，都会终止编译，并通知给用户
 
-补充:上面3条是编译器对接口的检查机制,
-大体意思是错误使用接口会在编译期报错.
-所以可以利用这个机制让部分问题在编译期暴露.
+补充：上面 3 条是编译器对接口的检查机制，
+大体意思是错误使用接口会在编译期报错。
+所以可以利用这个机制让部分问题在编译期暴露。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -293,7 +304,7 @@ test(*m)//错误
 <tr><td>
 
 ```go
-// 如果Handler没有实现http.Handler,会在运行时报错
+// 如果 Handler 没有实现 http.Handler，会在运行时报错
 type Handler struct {
   // ...
 }
@@ -312,7 +323,7 @@ type Handler struct {
   // ...
 }
 // 用于触发编译期的接口的合理性检查机制
-// 如果Handler没有实现http.Handler,会在编译期报错
+// 如果 Handler 没有实现 http.Handler，会在编译期报错
 var _ http.Handler = (*Handler)(nil)
 func (h *Handler) ServeHTTP(
   w http.ResponseWriter,
@@ -325,8 +336,8 @@ func (h *Handler) ServeHTTP(
 </td></tr>
 </tbody></table>
 
-如果 `*Handler` 与 `http.Handler` 的接口不匹配,
-那么语句 `var _ http.Handler = (*Handler)(nil)` 将无法编译通过.
+如果 `*Handler` 与 `http.Handler` 的接口不匹配，
+那么语句 `var _ http.Handler = (*Handler)(nil)` 将无法编译通过。
 
 赋值的右边应该是断言类型的零值。
 对于指针类型（如 `*Handler`）、切片和映射，这是 `nil`；
@@ -350,7 +361,7 @@ func (h LogHandler) ServeHTTP(
 
 使用值接收器的方法既可以通过值调用，也可以通过指针调用。
 
-带指针接收器的方法只能通过指针或 [addressable values]调用.
+带指针接收器的方法只能通过指针或 [addressable values] 调用。
 
 [addressable values]: https://golang.org/ref/spec#Method_values
 
@@ -371,7 +382,7 @@ func (s *S) Write(str string) {
 
 sVals := map[int]S{1: {"A"}}
 
-// 你只能通过值调用 Read
+// 你通过值只能调用 Read
 sVals[1].Read()
 
 // 这不能编译通过：
@@ -384,7 +395,7 @@ sPtrs[1].Read()
 sPtrs[1].Write("test")
 ```
 
-类似的,即使方法有了值接收器,也同样可以用指针接收器来满足接口.
+类似的，即使方法有了值接收器，也同样可以用指针接收器来满足接口。
 
 ```go
 type F interface {
@@ -415,26 +426,26 @@ i = s2Ptr
 
 [Effective Go](https://golang.org/doc/effective_go.html) 中有一段关于 [pointers vs. values](https://golang.org/doc/effective_go.html#pointers_vs_values) 的精彩讲解。
 
-补充:
+补充：
 
 - 一个类型可以有值接收器方法集和指针接收器方法集
-  - 值接收器方法集是指针接收器方法集的子集,反之不是
+  - 值接收器方法集是指针接收器方法集的子集，反之不是
 - 规则
   - 值对象只可以使用值接收器方法集
   - 指针对象可以使用 值接收器方法集 + 指针接收器方法集
-- 接口的匹配(或者叫实现)
-  - 类型实现了接口的所有方法,叫匹配
-  - 具体的讲,要么是类型的值方法集匹配接口,要么是指针方法集匹配接口
+- 接口的匹配 (或者叫实现)
+  - 类型实现了接口的所有方法，叫匹配
+  - 具体的讲，要么是类型的值方法集匹配接口，要么是指针方法集匹配接口
 
-具体的匹配分两种:
+具体的匹配分两种：
 
 - 值方法集和接口匹配
-  - 给接口变量赋值的不管是值还是指针对象,都ok,因为都包含值方法集
+  - 给接口变量赋值的不管是值还是指针对象，都 ok，因为都包含值方法集
 - 指针方法集和接口匹配
-  - 只能将指针对象赋值给接口变量,因为只有指针方法集和接口匹配
-  - 如果将值对象赋值给接口变量,会在编译期报错(会触发接口合理性检查机制)
+  - 只能将指针对象赋值给接口变量，因为只有指针方法集和接口匹配
+  - 如果将值对象赋值给接口变量，会在编译期报错 (会触发接口合理性检查机制)
 
-为啥 i = s2Val 会报错,因为值方法集和接口不匹配.
+为啥 i = s2Val 会报错，因为值方法集和接口不匹配。
 
 ### 零值 Mutex 是有效的
 
@@ -814,7 +825,7 @@ func poll(delay int) {
     time.Sleep(time.Duration(delay) * time.Millisecond)
   }
 }
-poll(10) // 是几秒钟还是几毫秒?
+poll(10) // 是几秒钟还是几毫秒？
 ```
 
 </td><td>
@@ -832,7 +843,7 @@ poll(10*time.Second)
 </td></tr>
 </tbody></table>
 
-回到第一个例子，在一个时间瞬间加上 24 小时，我们用于添加时间的方法取决于意图。如果我们想要下一个日历日(当前天的下一天)的同一个时间点，我们应该使用 [`Time.AddDate`]。但是，如果我们想保证某一时刻比前一时刻晚 24 小时，我们应该使用 [`Time.Add`]。
+回到第一个例子，在一个时间瞬间加上 24 小时，我们用于添加时间的方法取决于意图。如果我们想要下一个日历日 (当前天的下一天) 的同一个时间点，我们应该使用 [`Time.AddDate`]。但是，如果我们想保证某一时刻比前一时刻晚 24 小时，我们应该使用 [`Time.Add`]。
 
 [`Time.AddDate`]: https://golang.org/pkg/time/#Time.AddDate
 [`Time.Add`]: https://golang.org/pkg/time/#Time.Add
@@ -917,7 +928,7 @@ type Config struct {
 [`errors.Is`]: https://golang.org/pkg/errors/#Is
 [`errors.As`]: https://golang.org/pkg/errors/#As
 
-| 错误匹配? | 错误消息 | 指导                           |
+| 错误匹配？| 错误消息 | 指导                           |
 |-----------------|---------------|-------------------------------------|
 | No              | static        | [`errors.New`]                      |
 | No              | dynamic       | [`fmt.Errorf`]                      |
@@ -1038,13 +1049,11 @@ if err := foo.Open("testfile.txt"); err != nil {
 
 #### 错误包装
 
-There are three main options for propagating errors if a call fails:
-如果调用失败，有三种主要的错误调用选项：
+如果调用其他方法时出现错误, 通常有三种处理方式可以选择：
 
-- 按原样返回原始错误
-- add context with `fmt.Errorf` and the `%w` verb
-- 使用`fmt.Errorf`和`%w`
-- 使用 `fmt.Errorf` 和 `%v`
+- 将原始错误原样返回
+- 使用 `fmt.Errorf` 搭配 `%w` 将错误添加进上下文后返回
+- 使用 `fmt.Errorf` 搭配 `%v` 将错误添加进上下文后返回
 
 如果没有要添加的其他上下文，则按原样返回原始错误。
 这将保留原始错误类型和消息。
@@ -1052,7 +1061,7 @@ There are three main options for propagating errors if a call fails:
 
 否则，尽可能在错误消息中添加上下文
 这样就不会出现诸如“连接被拒绝”之类的模糊错误，
-您会收到更多有用的错误，例如“呼叫服务 foo：连接被拒绝”。
+您会收到更多有用的错误，例如“调用服务 foo：连接被拒绝”。
 
 使用 `fmt.Errorf` 为你的错误添加上下文，
 根据调用者是否应该能够匹配和提取根本原因，在 `%w` 或 `%v` 动词之间进行选择。
@@ -1106,7 +1115,7 @@ x: y: new store: the error
 然而，一旦错误被发送到另一个系统，应该清楚消息是一个错误（例如`err` 标签或日志中的"Failed"前缀）。
 
 
-另见[不要只检查错误，优雅地处理它们]。
+另见 [不要只检查错误，优雅地处理它们]。
 
   [`"pkg/errors".Cause`]: https://godoc.org/github.com/pkg/errors#Cause
   [不要只检查错误，优雅地处理它们]: https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
@@ -1119,7 +1128,7 @@ x: y: new store: the error
 
 ```go
 var (
-  // 导出以下两个错误，以便此包的用户可以将它们与errors.Is 进行匹配。
+  // 导出以下两个错误，以便此包的用户可以将它们与 errors.Is 进行匹配。
 
   ErrBrokenLink = errors.New("link is broken")
   ErrCouldNotOpen = errors.New("could not open")
@@ -1133,7 +1142,7 @@ var (
 对于自定义错误类型，请改用后缀 `Error`。
 
 ```go
-// 同样，这个错误被导出，以便这个包的用户可以将它与errors.As 匹配。
+// 同样，这个错误被导出，以便这个包的用户可以将它与 errors.As 匹配。
 
 type NotFoundError struct {
   File string
@@ -1143,7 +1152,7 @@ func (e *NotFoundError) Error() string {
   return fmt.Sprintf("file %q not found", e.File)
 }
 
-// 并且这个错误没有被导出，因为我们不想让它成为公共 API 的一部分。 我们仍然可以在带有errors.As的包中使用它。
+// 并且这个错误没有被导出，因为我们不想让它成为公共 API 的一部分。 我们仍然可以在带有 errors.As 的包中使用它。
 type resolveError struct {
   Path string
 }
@@ -1245,7 +1254,7 @@ var _statusTemplate = template.Must(template.New("name").Parse("_statusHTML"))
 ```go
 // func TestFoo(t *testing.T)
 
-f, err := ioutil.TempFile("", "test")
+f, err := os.CreateTemp("", "test")
 if err != nil {
   panic("failed to set up test")
 }
@@ -1256,7 +1265,7 @@ if err != nil {
 ```go
 // func TestFoo(t *testing.T)
 
-f, err := ioutil.TempFile("", "test")
+f, err := os.CreateTemp("", "test")
 if err != nil {
   t.Fatal("failed to set up test")
 }
@@ -1499,7 +1508,7 @@ func (l *ConcreteList) Remove(e Entity) {
 ### 避免使用内置名称
 
 Go [语言规范] 概述了几个内置的，
-不应在Go项目中使用的 [预先声明的标识符]。
+不应在 Go 项目中使用的 [预先声明的标识符]。
 
 根据上下文的不同，将这些标识符作为名称重复使用，
 将在当前作用域（或任何嵌套作用域）中隐藏原始标识符，或者混淆代码。
@@ -1618,7 +1627,7 @@ func init() {
 var _defaultFoo = Foo{
     // ...
 }
-// or, 为了更好的可测试性:
+// or，为了更好的可测试性：
 var _defaultFoo = defaultFoo()
 func defaultFoo() Foo {
     return Foo{
@@ -1639,7 +1648,7 @@ func init() {
     // Bad: 基于当前目录
     cwd, _ := os.Getwd()
     // Bad: I/O
-    raw, _ := ioutil.ReadFile(
+    raw, _ := os.ReadFile(
         path.Join(cwd, "config", "config.yaml"),
     )
     yaml.Unmarshal(raw, &_config)
@@ -1655,7 +1664,7 @@ type Config struct {
 func loadConfig() Config {
     cwd, err := os.Getwd()
     // handle err
-    raw, err := ioutil.ReadFile(
+    raw, err := os.ReadFile(
         path.Join(cwd, "config", "config.yaml"),
     )
     // handle err
@@ -1672,7 +1681,7 @@ func loadConfig() Config {
 
 - 不能表示为单个赋值的复杂表达式。
 - 可插入的钩子，如`database/sql`、编码类型注册表等。
-- 对[Google Cloud Functions]和其他形式的确定性预计算的优化。
+- 对 [Google Cloud Functions] 和其他形式的确定性预计算的优化。
 
   [Google Cloud Functions]: https://cloud.google.com/functions/docs/bestpractices/tips#use_global_variables_to_reuse_objects_in_future_invocations
 
@@ -1723,9 +1732,9 @@ BenchmarkGood-4   100000000    0.21s
 </td></tr>
 </tbody></table>
 
-### 主函数退出方式(Exit)
+### 主函数退出方式 (Exit)
 
-Go程序使用[`os.Exit`] 或者 [`log.Fatal*`] 立即退出 (使用`panic`不是退出程序的好方法，请 [不要使用 panic](#不要使用-panic)。)
+Go 程序使用 [`os.Exit`] 或者 [`log.Fatal*`] 立即退出 (使用`panic`不是退出程序的好方法，请 [不要使用 panic](#不要使用-panic)。)
 
   [`os.Exit`]: https://golang.org/pkg/os/#Exit
   [`log.Fatal*`]: https://golang.org/pkg/log/#Fatal
@@ -1747,7 +1756,7 @@ func readFile(path string) string {
   if err != nil {
     log.Fatal(err)
   }
-  b, err := ioutil.ReadAll(f)
+  b, err := os.ReadAll(f)
   if err != nil {
     log.Fatal(err)
   }
@@ -1770,7 +1779,7 @@ func readFile(path string) (string, error) {
   if err != nil {
     return "", err
   }
-  b, err := ioutil.ReadAll(f)
+  b, err := os.ReadAll(f)
   if err != nil {
     return "", err
   }
@@ -1809,9 +1818,9 @@ func main() {
     log.Fatal(err)
   }
   defer f.Close()
-  // 如果我们调用log.Fatal 在这条线之后
-  // f.Close 将会被执行.
-  b, err := ioutil.ReadAll(f)
+  // 如果我们调用 log.Fatal 在这条线之后
+  // f.Close 将会被执行。
+  b, err := os.ReadAll(f)
   if err != nil {
     log.Fatal(err)
   }
@@ -1839,13 +1848,236 @@ func run() error {
     return err
   }
   defer f.Close()
-  b, err := ioutil.ReadAll(f)
+  b, err := os.ReadAll(f)
   if err != nil {
     return err
   }
   // ...
 }
 ```
+
+</td></tr>
+</tbody></table>
+
+### 在序列化结构中使用字段标记
+
+任何序列化到JSON、YAML、，
+或其他支持基于标记的字段命名的格式应使用相关标记进行注释。
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+type Stock struct {
+  Price int
+  Name  string
+}
+bytes, err := json.Marshal(Stock{
+  Price: 137,
+  Name:  "UBER",
+})
+```
+
+</td><td>
+
+```go
+type Stock struct {
+  Price int    `json:"price"`
+  Name  string `json:"name"`
+  // Safe to rename Name to Symbol.
+}
+bytes, err := json.Marshal(Stock{
+  Price: 137,
+  Name:  "UBER",
+})
+```
+
+</td></tr>
+</tbody></table>
+
+理论上：
+结构的序列化形式是不同系统之间的契约。
+对序列化表单结构（包括字段名）的更改会破坏此约定。在标记中指定字段名使约定明确，
+它还可以通过重构或重命名字段来防止意外违反约定。
+
+### 不要一劳永逸地使用 goroutine
+
+Goroutines 是轻量级的，但它们不是免费的：
+至少，它们会为堆栈和 CPU 的调度消耗内存。
+虽然这些成本对于 Goroutines 的使用来说很小，但当它们在没有受控生命周期的情况下大量生成时会导致严重的性能问题。
+具有非托管生命周期的 Goroutines 也可能导致其他问题，例如防止未使用的对象被垃圾回收并保留不再使用的资源。
+
+因此，不要在代码中泄漏 goroutine。
+使用 [go.uber.org/goleak](https://pkg.go.dev/go.uber.org/goleak)
+来测试可能产生 goroutine 的包内的 goroutine 泄漏。
+
+一般来说，每个 goroutine:
+
+- 必须有一个可预测的停止运行时间； 或者
+- 必须有一种方法可以向 goroutine 发出信号它应该停止
+
+在这两种情况下，都必须有一种方式代码来阻塞并等待 goroutine 完成。
+
+For example:
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+go func() {
+  for {
+    flush()
+    time.Sleep(delay)
+  }
+}()
+```
+
+</td><td>
+
+```go
+var (
+  stop = make(chan struct{}) // 告诉 goroutine 停止
+  done = make(chan struct{}) // 告诉我们 goroutine 退出了
+)
+go func() {
+  defer close(done)
+  ticker := time.NewTicker(delay)
+  defer ticker.Stop()
+  for {
+    select {
+    case <-tick.C:
+      flush()
+    case <-stop:
+      return
+    }
+  }
+}()
+// 其它...
+close(stop)  // 指示 goroutine 停止
+<-done       // and wait for it to exit
+```
+
+</td></tr>
+<tr><td>
+
+没有办法阻止这个 goroutine。这将一直运行到应用程序退出。
+
+</td><td>
+
+这个 goroutine 可以用 `close(stop)`,
+我们可以等待它退出 `<-done`.
+
+</td></tr>
+</tbody></table>
+
+#### 等待 goroutines 退出
+
+给定一个由系统生成的 goroutine，
+必须有一种方案能等待 goroutine 的退出。
+有两种常用的方法可以做到这一点：
+
+- 使用 `sync.WaitGroup`.
+  如果您要等待多个 goroutine，请执行此操作
+
+    ```go
+    var wg sync.WaitGroup
+    for i := 0; i < N; i++ {
+      wg.Add(1)
+      go func() {
+        defer wg.Done()
+        // ...
+      }()
+    }
+    
+    // To wait for all to finish:
+    wg.Wait()
+    ```
+
+- 添加另一个 `chan struct{}`，goroutine 完成后会关闭它。
+   如果只有一个 goroutine，请执行此操作。
+
+    ```go
+    done := make(chan struct{})
+    go func() {
+      defer close(done)
+      // ...
+    }()
+    
+    // To wait for the goroutine to finish:
+    <-done
+    ```
+
+#### 不要在 `init()` 使用 goroutines 
+
+`init()` 函数不应该产生 goroutines。
+另请参阅 [避免使用 init()](#避免使用-init)。
+
+如果一个包需要一个后台 goroutine，
+它必须公开一个负责管理 goroutine 生命周期的对象。
+该对象必须提供一个方法（`Close`、`Stop`、`Shutdown` 等）来指示后台 goroutine 停止并等待它的退出。
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+func init() {
+  go doWork()
+}
+func doWork() {
+  for {
+    // ...
+  }
+}
+```
+
+</td><td>
+
+```go
+type Worker struct{ /* ... */ }
+func NewWorker(...) *Worker {
+  w := &Worker{
+    stop: make(chan struct{}),
+    done: make(chan struct{}),
+    // ...
+  }
+  go w.doWork()
+}
+func (w *Worker) doWork() {
+  defer close(w.done)
+  for {
+    // ...
+    case <-w.stop:
+      return
+  }
+}
+// Shutdown 告诉 worker 停止
+// 并等待它完成。
+func (w *Worker) Shutdown() {
+  close(w.stop)
+  <-w.done
+}
+```
+
+</td></tr>
+<tr><td>
+
+当用户导出这个包时，无条件地生成一个后台 goroutine。
+用户无法控制 goroutine 或停止它的方法。
+
+</td><td>
+
+仅当用户请求时才生成工作人员。
+提供一种关闭工作器的方法，以便用户可以释放工作器使用的资源。
+
+请注意，如果工作人员管理多个 goroutine，则应使用`WaitGroup`。
+请参阅 [等待 goroutines 退出](#等待-goroutines-退出)。
+
 
 </td></tr>
 </tbody></table>
@@ -1939,7 +2171,7 @@ BenchmarkGood-4  500000000   3.25 ns/op
 
 尽可能指定容器容量，以便为容器预先分配内存。这将在添加元素时最小化后续分配（通过复制和调整容器大小）。
 
-#### 指定Map容量提示
+#### 指定 Map 容量提示
 
 在尽可能的情况下，在使用 `make()` 初始化的时候提供容量信息
 
@@ -1947,11 +2179,11 @@ BenchmarkGood-4  500000000   3.25 ns/op
 make(map[T1]T2, hint)
 ```
 
-向`make()`提供容量提示会在初始化时尝试调整map的大小，这将减少在将元素添加到map时为map重新分配内存。
+向`make()`提供容量提示会在初始化时尝试调整 map 的大小，这将减少在将元素添加到 map 时为 map 重新分配内存。
 
 
-注意，与slices不同。map capacity提示并不保证完全的抢占式分配，而是用于估计所需的hashmap bucket的数量。
-因此，在将元素添加到map时，甚至在指定map容量时，仍可能发生分配。
+注意，与 slices 不同。map capacity 提示并不保证完全的抢占式分配，而是用于估计所需的 hashmap bucket 的数量。
+因此，在将元素添加到 map 时，甚至在指定 map 容量时，仍可能发生分配。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1961,7 +2193,7 @@ make(map[T1]T2, hint)
 ```go
 m := make(map[string]os.FileInfo)
 
-files, _ := ioutil.ReadDir("./files")
+files, _ := os.ReadDir("./files")
 for _, f := range files {
     m[f.Name()] = f
 }
@@ -1971,7 +2203,7 @@ for _, f := range files {
 
 ```go
 
-files, _ := ioutil.ReadDir("./files")
+files, _ := os.ReadDir("./files")
 
 m := make(map[string]os.FileInfo, len(files))
 for _, f := range files {
@@ -1999,8 +2231,8 @@ for _, f := range files {
 make([]T, length, capacity)
 ```
 
-与maps不同，slice capacity不是一个提示：编译器将为提供给`make()`的slice的容量分配足够的内存，
-这意味着后续的append()`操作将导致零分配（直到slice的长度与容量匹配，在此之后，任何append都可能调整大小以容纳其他元素）。
+与 maps 不同，slice capacity 不是一个提示：编译器将为提供给`make()`的 slice 的容量分配足够的内存，
+这意味着后续的 append()`操作将导致零分配（直到 slice 的长度与容量匹配，在此之后，任何 append 都可能调整大小以容纳其他元素）。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -2048,7 +2280,7 @@ BenchmarkGood-4   100000000    0.21s
 
 避免使用需要读者水平滚动或过度转动头部的代码行。
 
-我们建议将行长度限制为 **99 characters** (99个字符).
+我们建议将行长度限制为 **99 characters** (99 个字符).
 作者应该在达到这个限制之前换行，
 但这不是硬性限制。
 允许代码超过此限制。
@@ -2175,9 +2407,9 @@ const EnvVar = "MY_ENV"
 
 ```go
 func f() string {
-  var red = color.New(0xff0000)
-  var green = color.New(0x00ff00)
-  var blue = color.New(0x0000ff)
+  red := color.New(0xff0000)
+  green := color.New(0x00ff00)
+  blue := color.New(0x0000ff)
 
   ...
 }
@@ -2194,6 +2426,40 @@ func f() string {
   )
 
   ...
+}
+```
+
+</td></tr>
+</tbody></table>
+
+例外：如果变量声明与其他变量相邻，则应将变量声明（尤其是函数内部的声明）分组在一起。对一起声明的变量执行此操作，即使它们不相关。
+
+<table>
+<thead><tr><th>Bad</th><th>Good</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+func (c *client) request() {
+  caller := c.name
+  format := "json"
+  timeout := 5*time.Second
+  var err error
+  // ...
+}
+```
+
+</td><td>
+
+```go
+func (c *client) request() {
+  var (
+    caller  = c.name
+    format  = "json"
+    timeout = 5*time.Second
+    err error
+  )
+  // ...
 }
 ```
 
@@ -2475,8 +2741,6 @@ var _e error = F()
 
 在未导出的顶级`vars`和`consts`， 前面加上前缀_，以使它们在使用时明确表示它们是全局符号。
 
-例外：未导出的错误值，应以`err`开头。
-
 基本依据：顶级变量和常量具有包范围作用域。使用通用名称可能很容易在其他文件中意外使用错误的值。
 
 <table>
@@ -2518,7 +2782,7 @@ const (
 </td></tr>
 </tbody></table>
 
-**Exception**:未导出的错误值可以使用不带下划线的前缀 `err`。 参见[错误命名](#错误命名)。
+**例外**：未导出的错误值可以使用不带下划线的前缀 `err`。 参见[错误命名](#错误命名)。
 
 ### 结构体中的嵌入
 
@@ -2565,7 +2829,7 @@ type Client struct {
 - 作为嵌入内部类型的副作用，从外部类型公开不相关的函数或字段。
 - 公开未导出的类型。
 - 影响外部类型的复制形式。
-- 更改外部类型的API或类型语义。
+- 更改外部类型的 API 或类型语义。
 - 嵌入内部类型的非规范形式。
 - 公开外部类型的实现详细信息。
 - 允许用户观察或控制类型内部。
@@ -2573,7 +2837,7 @@ type Client struct {
 
 简单地说，有意识地和有目的地嵌入。一种很好的测试体验是，
 "是否所有这些导出的内部方法/字段都将直接添加到外部类型"
-如果答案是`some`或`no`，不要嵌入内部类型-而是使用字段。
+如果答案是`some`或`no`，不要嵌入内部类型 - 而是使用字段。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -2583,7 +2847,7 @@ type Client struct {
 ```go
 type A struct {
     // Bad: A.Lock() and A.Unlock() 现在可用
-    // 不提供任何功能性好处，并允许用户控制有关A的内部细节。
+    // 不提供任何功能性好处，并允许用户控制有关 A 的内部细节。
     sync.Mutex
 }
 ```
@@ -2593,7 +2857,7 @@ type A struct {
 ```go
 type countingWriteCloser struct {
     // Good: Write() 在外层提供用于特定目的，
-    // 并且委托工作到内部类型的Write()中。
+    // 并且委托工作到内部类型的 Write() 中。
     io.WriteCloser
     count int
 }
@@ -2659,46 +2923,6 @@ type Client struct {
 
 </td></tr>
 </tbody></table>
-
-### 使用字段名初始化结构体
-
-初始化结构体时，应该指定字段名称。现在由 [`go vet`] 强制执行。
-
-[`go vet`]: https://golang.org/cmd/vet/
-
-<table>
-<thead><tr><th>Bad</th><th>Good</th></tr></thead>
-<tbody>
-<tr><td>
-
-```go
-k := User{"John", "Doe", true}
-```
-
-</td><td>
-
-```go
-k := User{
-    FirstName: "John",
-    LastName: "Doe",
-    Admin: true,
-}
-```
-
-</td></tr>
-</tbody></table>
-
-例外：如果有 3 个或更少的字段，则可以在测试表中省略字段名称。
-
-```go
-tests := []struct{
-  op Operation
-  want string
-}{
-  {Add, "add"},
-  {Subtract, "subtract"},
-}
-```
 
 ### 本地变量声明
 
@@ -2847,7 +3071,7 @@ func f(list []int) {
   </td></tr>
   </tbody></table>
 
-记住，虽然nil切片是有效的切片，但它不等于长度为0的切片（一个为nil，另一个不是），并且在不同的情况下（例如序列化），这两个切片的处理方式可能不同。
+记住，虽然 nil 切片是有效的切片，但它不等于长度为 0 的切片（一个为 nil，另一个不是），并且在不同的情况下（例如序列化），这两个切片的处理方式可能不同。
 
 ### 缩小变量作用域
 
@@ -2859,7 +3083,7 @@ func f(list []int) {
 <tr><td>
 
 ```go
-err := ioutil.WriteFile(name, data, 0644)
+err := os.WriteFile(name, data, 0644)
 if err != nil {
  return err
 }
@@ -2868,7 +3092,7 @@ if err != nil {
 </td><td>
 
 ```go
-if err := ioutil.WriteFile(name, data, 0644); err != nil {
+if err := os.WriteFile(name, data, 0644); err != nil {
  return err
 }
 ```
@@ -2884,7 +3108,7 @@ if err := ioutil.WriteFile(name, data, 0644); err != nil {
 <tr><td>
 
 ```go
-if data, err := ioutil.ReadFile(name); err == nil {
+if data, err := os.ReadFile(name); err == nil {
   err = cfg.Decode(data)
   if err != nil {
     return err
@@ -2900,7 +3124,7 @@ if data, err := ioutil.ReadFile(name); err == nil {
 </td><td>
 
 ```go
-data, err := ioutil.ReadFile(name)
+data, err := os.ReadFile(name)
 if err != nil {
    return err
 }
@@ -2916,7 +3140,7 @@ return nil
 </td></tr>
 </tbody></table>
 
-### 避免参数语义不明确(Avoid Naked Parameters)
+### 避免参数语义不明确 (Avoid Naked Parameters)
 
 函数调用中的`意义不明确的参数`可能会损害可读性。当参数名称的含义不明显时，请为参数添加 C 样式注释 (`/* ... */`)
 
@@ -2991,7 +3215,7 @@ wantError := `unknown error:"test"`
 
 #### 使用字段名初始化结构
 
-初始化结构时，几乎应该始终指定字段名。目前由[`go vet`]强制执行。
+初始化结构时，几乎应该始终指定字段名。目前由 [`go vet`] 强制执行。
 
 [`go vet`]: https://golang.org/cmd/vet/
 
@@ -3017,7 +3241,7 @@ k := User{
 </td></tr>
 </tbody></table>
 
-例外：当有3个或更少的字段时，测试表中的字段名*may*可以省略。
+例外：当有 3 个或更少的字段时，测试表中的字段名*may*可以省略。
 
 ```go
 tests := []struct{
@@ -3094,7 +3318,7 @@ var user User
 </td></tr>
 </tbody></table>
 
-这将零值结构与那些具有类似于为 [初始化 Maps](#初始化-maps) 创建的,区别于非零值字段的结构区分开来，
+这将零值结构与那些具有类似于为 [初始化 Maps](#初始化-maps) 创建的，区别于非零值字段的结构区分开来，
 并与我们更喜欢的 [声明空切片] 方式相匹配。
 
 #### 初始化 Struct 引用
@@ -3167,7 +3391,7 @@ var (
 </td></tr>
 </tbody></table>
 
-在尽可能的情况下，请在初始化时提供 map 容量大小，详细请看 [指定Map容量提示](#指定Map容量提示)。
+在尽可能的情况下，请在初始化时提供 map 容量大小，详细请看 [指定 Map 容量提示](#指定Map容量提示)。
 
 
 另外，如果 map 包含固定的元素列表，则使用 map literals(map 初始化列表) 初始化映射。
@@ -3344,6 +3568,28 @@ for _, tt := range tests {
 }
 ```
 
+并行测试，比如一些专门的循环（例如，生成goroutine或捕获引用作为循环体的一部分的那些循环）
+必须注意在循环的范围内显式地分配循环变量，以确保它们保持预期的值。
+
+```go
+tests := []struct{
+  give string
+  // ...
+}{
+  // ...
+}
+for _, tt := range tests {
+  tt := tt // for t.Parallel
+  t.Run(tt.give, func(t *testing.T) {
+    t.Parallel()
+    // ...
+  })
+}
+```
+
+在上面的例子中，由于下面使用了`t.Parallel()`，我们必须声明一个作用域为循环迭代的`tt`变量。
+如果我们不这样做，大多数或所有测试都会收到一个意外的`tt`值，或者一个在运行时发生变化的值。
+
 ### 功能选项
 
 功能选项是一种模式，您可以在其中声明一个不透明 Option 类型，该类型在某些内部结构中记录信息。您接受这些选项的可变编号，并根据内部结构上的选项记录的全部信息采取行动。
@@ -3475,7 +3721,7 @@ func Open(
 }
 ```
 
-注意: 还有一种使用闭包实现这个模式的方法，但是我们相信上面的模式为作者提供了更多的灵活性，并且更容易对用户进行调试和测试。特别是，在不可能进行比较的情况下它允许在测试和模拟中对选项进行比较。此外，它还允许选项实现其他接口，包括 `fmt.Stringer`，允许用户读取选项的字符串表示形式。
+注意：还有一种使用闭包实现这个模式的方法，但是我们相信上面的模式为作者提供了更多的灵活性，并且更容易对用户进行调试和测试。特别是，在不可能进行比较的情况下它允许在测试和模拟中对选项进行比较。此外，它还允许选项实现其他接口，包括 `fmt.Stringer`，允许用户读取选项的字符串表示形式。
 
 还可以参考下面资料：
 
@@ -3490,9 +3736,9 @@ use one vs other -->
 
 ## Linting
 
-比任何 "blessed" linter 集更重要的是，lint在一个代码库中始终保持一致。
+比任何 "blessed" linter 集更重要的是，lint 在一个代码库中始终保持一致。
 
-我们建议至少使用以下linters，因为我认为它们有助于发现最常见的问题，并在不需要规定的情况下为代码质量建立一个高标准：
+我们建议至少使用以下 linters，因为我认为它们有助于发现最常见的问题，并在不需要规定的情况下为代码质量建立一个高标准：
 
 - [errcheck] 以确保错误得到处理
 - [goimports] 格式化代码和管理 imports
@@ -3509,9 +3755,9 @@ use one vs other -->
 
 ### Lint Runners
 
-我们推荐 [golangci-lint] 作为go-to lint的运行程序，这主要是因为它在较大的代码库中的性能以及能够同时配置和使用许多规范。这个repo有一个示例配置文件 [.golangci.yml] 和推荐的linter设置。
+我们推荐 [golangci-lint] 作为 go-to lint 的运行程序，这主要是因为它在较大的代码库中的性能以及能够同时配置和使用许多规范。这个 repo 有一个示例配置文件 [.golangci.yml] 和推荐的 linter 设置。
 
-golangci-lint 有[various-linters]可供使用。建议将上述linters作为基本set，我们鼓励团队添加对他们的项目有意义的任何附加linters。
+golangci-lint 有 [various-linters] 可供使用。建议将上述 linters 作为基本 set，我们鼓励团队添加对他们的项目有意义的任何附加 linters。
 
 [golangci-lint]: https://github.com/golangci/golangci-lint
 [.golangci.yml]: https://github.com/uber-go/guide/blob/master/.golangci.yml
