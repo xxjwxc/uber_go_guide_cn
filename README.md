@@ -119,7 +119,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2022-10-19 版本地址：[commit:#158](https://github.com/uber-go/guide/commit/4478e672bddf9d4f7ca4a561ab0779e08e469577)
+  - 当前更新版本：2022-03-07 版本地址：[commit:#171](https://github.com/uber-go/guide/commit/cb642aa600e9db21abca08c298ac1b2e166622b1)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -3296,7 +3296,7 @@ var user User
 </tbody></table>
 
 这将零值结构与那些具有类似于为 [初始化 Maps](#初始化-maps) 创建的，区别于非零值字段的结构区分开来，
-并与我们更喜欢的 [声明空切片] 方式相匹配。
+我们倾向于[声明一个空切片](https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices)
 
 #### 初始化 Struct 引用
 
