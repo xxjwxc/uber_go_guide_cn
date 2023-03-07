@@ -1076,13 +1076,13 @@ if err != nil {
 
 </td></tr><tr><td>
 
-```
+```plain
 failed to x: failed to y: failed to create new store: the error
 ```
 
 </td><td>
 
-```
+```plain
 x: y: new store: the error
 ```
 
@@ -2089,13 +2089,13 @@ for i := 0; i < b.N; i++ {
 </td></tr>
 <tr><td>
 
-```
+```plain
 BenchmarkFmtSprint-4    143 ns/op    2 allocs/op
 ```
 
 </td><td>
 
-```
+```plain
 BenchmarkStrconv-4    64.2 ns/op    1 allocs/op
 ```
 
@@ -2131,13 +2131,13 @@ for i := 0; i < b.N; i++ {
 </tr>
 <tr><td>
 
-```
+```plain
 BenchmarkBad-4   50000000   22.2 ns/op
 ```
 
 </td><td>
 
-```
+```plain
 BenchmarkGood-4  500000000   3.25 ns/op
 ```
 
@@ -3438,7 +3438,7 @@ fmt.Printf(msg, 1, 2)
 如果不能使用预定义的名称，请以 f 结束选择的名称：`Wrapf`，而不是`Wrap`。`go vet`可以要求检查特定的 Printf 样式名称，但名称必须以`f`结尾。
 
 ```shell
-$ go vet -printfuncs=wrapf,statusf
+go vet -printfuncs=wrapf,statusf
 ```
 
 另请参阅 [go vet: Printf family check].
