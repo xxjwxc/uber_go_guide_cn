@@ -2159,7 +2159,7 @@ make(map[T1]T2, hint)
 向`make()`提供容量提示会在初始化时尝试调整 map 的大小，这将减少在将元素添加到 map 时为 map 重新分配内存。
 
 
-注意，与 slices 不同。map capacity 提示并不保证完全的抢占式分配，而是用于估计所需的 hashmap bucket 的数量。
+注意，与 slices 不同。map 容量提示并不保证完全的、预先的分配，而是用于估计所需的 hashmap bucket 的数量。
 因此，在将元素添加到 map 时，甚至在指定 map 容量时，仍可能发生分配。
 
 <table>
