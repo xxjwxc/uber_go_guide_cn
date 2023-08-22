@@ -122,7 +122,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2022-04-25 版本地址：[commit:#180](https://github.com/uber-go/guide/commit/0bfd9f1f2483979ac70505e92e89057e2283e1b6)
+  - 当前更新版本：2022-04-25 版本地址：[commit:#190](https://github.com/uber-go/guide/commit/7f06a5311fc28a4377179102b002e4e7a7bd257d)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -153,6 +153,7 @@ change.md
     - [错误类型](#错误类型)
     - [错误包装](#错误包装)
     - [错误命名](#错误命名)
+    - [一次处理错误](#一次处理错误)
   - [处理断言失败](#处理断言失败)
   - [不要使用 panic](#不要使用-panic)
   - [使用 go.uber.org/atomic](#使用-gouberorgatomic)
@@ -185,7 +186,7 @@ change.md
   - [减少嵌套](#减少嵌套)
   - [不必要的 else](#不必要的-else)
   - [顶层变量声明](#顶层变量声明)
-  - [对于未导出的顶层常量和变量，使用_作为前缀](#对于未导出的顶层常量和变量使用_作为前缀)
+  - [对于未导出的顶层常量和变量，使用\_作为前缀](#对于未导出的顶层常量和变量使用_作为前缀)
   - [结构体中的嵌入](#结构体中的嵌入)
   - [本地变量声明](#本地变量声明)
   - [nil 是一个有效的 slice](#nil-是一个有效的-slice)
@@ -1934,6 +1935,38 @@ func run() error {
 
 </td></tr>
 </tbody></table>
+
+上面的示例使用`log.Fatal`，但该指南也适用于`os.Exit`或任何调用`os.Exit`的库代码。
+
+```go
+func main() {
+  if err := run(); err != nil {
+    fmt.Fprintln(os.Stderr, err)
+    os.Exit(1)
+  }
+}
+```
+
+您可以根据需要更改`run()`的签名。例如，如果您的程序必须使用特定的失败退出代码退出，`run()`可能会返回退出代码而不是错误。这也允许单元测试直接验证此行为。
+
+```go
+func main() {
+  os.Exit(run(args))
+}
+
+func run() (exitCode int) {
+  // ...
+}
+```
+请注意，这些示例中使用的`run()`函数并不是强制性的。
+`run()`函数的名称、签名和设置具有灵活性。除其他外，您可以：
+
+- 接受未分析的命令行参数 (e.g., `run(os.Args[1:])`)
+- 解析`main()`中的命令行参数并将其传递到`run`
+- 使用自定义错误类型将退出代码传回`main（）`
+- 将业务逻辑置于不同的抽象层 `package main`
+
+本指南只要求在`main()`中有一个位置负责实际的退出流程。
 
 ### 在序列化结构中使用字段标记
 
