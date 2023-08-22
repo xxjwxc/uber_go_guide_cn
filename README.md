@@ -266,6 +266,29 @@ func (s *S2) f() {}
 var f1 F = S1{}
 var f2 F = &S2{}
 ```
+永远不要使用指向interface的指针，这个是没有意义的.在go语言中，接口本身就是引用类型，换句话说，接口类型本身就是一个指针。对于我的需求，其实test的参数只要是myinterface就可以了，只需要在传值的时候，传*mystruct类型（也只能传*mystruct类型）
+```
+type myinterface interface{
+	print()
+}
+func test(value *myinterface){
+	//someting to do ...
+}
+
+type mystruct struct {
+	i int
+}
+//实现接口
+func (this *mystruct) print(){
+	fmt.Println(this.i)
+	this.i=1
+}
+func main(){
+m := &mystruct{0}
+test(m)//错误
+test(*m)//错误
+}
+```
 
 ### Interface 合理性验证
 
@@ -2341,7 +2364,7 @@ make([]T, length, capacity)
 ```
 
 与 maps 不同，slice capacity 不是一个提示：编译器将为提供给`make()`的 slice 的容量分配足够的内存，
-这意味着后续的 append()`操作将导致零分配（直到 slice 的长度与容量匹配，在此之后，任何 append 都可能调整大小以容纳其他元素）。
+这意味着后续的`append()`操作将导致零分配（直到 slice 的长度与容量匹配，在此之后，任何 append 都可能调整大小以容纳其他元素）。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
