@@ -122,7 +122,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2022-04-25 版本地址：[commit:#190](https://github.com/uber-go/guide/commit/7f06a5311fc28a4377179102b002e4e7a7bd257d)
+  - 当前更新版本：2022-04-25 版本地址：[commit:#207](https://github.com/uber-go/guide/commit/6faf78242fbb4c4296861eff65b6cfa274acaa87)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -222,8 +222,8 @@ change.md
 本文档记录了我们在 Uber 遵循的 Go 代码中的惯用约定。其中许多是 Go 的通用准则，而其他扩展准则依赖于下面外部的指南：
 
 1. [Effective Go](https://golang.org/doc/effective_go.html)
-2. [Go Common Mistakes](https://github.com/golang/go/wiki/CommonMistakes)
-3. [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+2. [Go Common Mistakes](https://go.dev/wiki/CommonMistakes)
+3. [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments)
 
 我们的目标是使代码示例能够准确地用于Go的两个发布版本 [releases](https://go.dev/doc/devel/release).
 
@@ -233,7 +233,7 @@ change.md
 - 运行 `golint` 和 `go vet` 检查错误
 
 您可以在以下 Go 编辑器工具支持页面中找到更为详细的信息：
-<https://github.com/golang/go/wiki/IDEsAndTextEditorPlugins>
+<https://go.dev/wiki/IDEsAndTextEditorPlugins>
 
 ## 指导原则
 
@@ -781,13 +781,13 @@ const (
 
 因此，在处理时间时始终使用 [`"time"`] 包，因为它有助于以更安全、更准确的方式处理这些不正确的假设。
 
-[`"time"`]: https://golang.org/pkg/time/
+[`"time"`]: https://pkg.go.dev/time/
 
 #### 使用 `time.Time` 表达瞬时时间
 
 在处理时间的瞬间时使用 [`time.Time`]，在比较、添加或减去时间时使用 `time.Time` 中的方法。
 
-[`time.Time`]: https://golang.org/pkg/time/#Time
+[`time.Time`]: https://pkg.go.dev/time/#Time
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -815,7 +815,7 @@ func isActive(now, start, stop time.Time) bool {
 
 在处理时间段时使用 [`time.Duration`] .
 
-[`time.Duration`]: https://golang.org/pkg/time/#Duration
+[`time.Duration`]: https://pkg.go.dev/time/#Duration
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -849,8 +849,8 @@ poll(10*time.Second)
 
 回到第一个例子，在一个时间瞬间加上 24 小时，我们用于添加时间的方法取决于意图。如果我们想要下一个日历日 (当前天的下一天) 的同一个时间点，我们应该使用 [`Time.AddDate`]。但是，如果我们想保证某一时刻比前一时刻晚 24 小时，我们应该使用 [`Time.Add`]。
 
-[`Time.AddDate`]: https://golang.org/pkg/time/#Time.AddDate
-[`Time.Add`]: https://golang.org/pkg/time/#Time.Add
+[`Time.AddDate`]: https://pkg.go.dev/time/#Time.AddDate
+[`Time.Add`]: https://pkg.go.dev/time/#Time.Add
 
 ```go
 newDay := t.AddDate(0 /* years */, 0 /* months */, 1 /* days */)
@@ -866,13 +866,13 @@ maybeNewDay := t.Add(24 * time.Hour)
 - SQL: [`database/sql`] 支持将 `DATETIME` 或 `TIMESTAMP` 列转换为 `time.Time`，如果底层驱动程序支持则返回
 - YAML: [`gopkg.in/yaml.v2`] 支持将 `time.Time` 作为 [RFC 3339] 字符串，并通过 [`time.ParseDuration`] 支持 `time.Duration`。
 
-  [`flag`]: https://golang.org/pkg/flag/
-  [`time.ParseDuration`]: https://golang.org/pkg/time/#ParseDuration
-  [`encoding/json`]: https://golang.org/pkg/encoding/json/
+  [`flag`]: https://pkg.go.dev/flag/
+  [`time.ParseDuration`]: https://pkg.go.dev/time/#ParseDuration
+  [`encoding/json`]: https://pkg.go.dev/encoding/json/
   [RFC 3339]: https://tools.ietf.org/html/rfc3339
-  [`UnmarshalJSON` method]: https://golang.org/pkg/time/#Time.UnmarshalJSON
-  [`database/sql`]: https://golang.org/pkg/database/sql/
-  [`gopkg.in/yaml.v2`]: https://godoc.org/gopkg.in/yaml.v2
+  [`UnmarshalJSON` method]: https://pkg.go.dev/time/#Time.UnmarshalJSON
+  [`database/sql`]: https://pkg.go.dev/database/sql/
+  [`gopkg.in/yaml.v2`]: https://pkg.go.dev/gopkg.in/yaml.v2
 
 当不能在这些交互中使用 `time.Duration` 时，请使用 `int` 或 `float64`，并在字段名称中包含单位。
 
@@ -904,13 +904,13 @@ type Config struct {
 
 当在这些交互中不能使用 `time.Time` 时，除非达成一致，否则使用 `string` 和 [RFC 3339] 中定义的格式时间戳。默认情况下，[`Time.UnmarshalText`] 使用此格式，并可通过 [`time.RFC3339`] 在 `Time.Format` 和 `time.Parse` 中使用。
 
-[`Time.UnmarshalText`]: https://golang.org/pkg/time/#Time.UnmarshalText
-[`time.RFC3339`]: https://golang.org/pkg/time/#RFC3339
+[`Time.UnmarshalText`]: https://pkg.go.dev/time/#Time.UnmarshalText
+[`time.RFC3339`]: https://pkg.go.dev/time/#RFC3339
 
 尽管这在实践中并不成问题，但请记住，`"time"` 包不支持解析闰秒时间戳（[8728]），也不在计算中考虑闰秒（[15190]）。如果您比较两个时间瞬间，则差异将不包括这两个瞬间之间可能发生的闰秒。
 
-[8728]: https://github.com/golang/go/issues/8728
-[15190]: https://github.com/golang/go/issues/15190
+[8728]: https://go.dev/issues/8728
+[15190]: https://go.dev/issues/15190
 
 <!-- TODO: section on String methods for enums -->
 
@@ -929,8 +929,8 @@ type Config struct {
 - 我们是否正在传递由下游函数返回的新错误？
    如果是这样，请参阅[错误包装部分](#错误包装)。
 
-[`errors.Is`]: https://golang.org/pkg/errors/#Is
-[`errors.As`]: https://golang.org/pkg/errors/#As
+[`errors.Is`]: https://pkg.go.dev/errors/#Is
+[`errors.As`]: https://pkg.go.dev/errors/#As
 
 | 错误匹配？| 错误消息 | 指导                           |
 |-----------------|---------------|-------------------------------------|
@@ -939,8 +939,8 @@ type Config struct {
 | Yes             | static        | top-level `var` with [`errors.New`] |
 | Yes             | dynamic       | custom `error` type                 |
 
-[`errors.New`]: https://golang.org/pkg/errors/#New
-[`fmt.Errorf`]: https://golang.org/pkg/fmt/#Errorf
+[`errors.New`]: https://pkg.go.dev/errors/#New
+[`fmt.Errorf`]: https://pkg.go.dev/fmt/#Errorf
 
 例如，
 使用 [`errors.New`] 表示带有静态字符串的错误。
@@ -1121,7 +1121,7 @@ x: y: new store: the error
 
 另见 [不要只检查错误，优雅地处理它们]。
 
-  [`"pkg/errors".Cause`]: https://godoc.org/github.com/pkg/errors#Cause
+  [`"pkg/errors".Cause`]: https://pkg.go.dev/github.com/pkg/errors#Cause
   [不要只检查错误，优雅地处理它们]: https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
 
 #### 错误命名
@@ -1382,8 +1382,8 @@ if err != nil {
 
 [go.uber.org/atomic] 通过隐藏基础类型为这些操作增加了类型安全性。此外，它包括一个方便的`atomic.Bool`类型。
 
-[go.uber.org/atomic]: https://godoc.org/go.uber.org/atomic
-[sync/atomic]: https://golang.org/pkg/sync/atomic/
+[go.uber.org/atomic]: https://pkg.go.dev/go.uber.org/atomic
+[sync/atomic]: https://pkg.go.dev/sync/atomic/
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1836,8 +1836,8 @@ BenchmarkGood-4   100000000    0.21s
 
 Go 程序使用 [`os.Exit`] 或者 [`log.Fatal*`] 立即退出 (使用`panic`不是退出程序的好方法，请 [不要使用 panic](#不要使用-panic)。)
 
-  [`os.Exit`]: https://golang.org/pkg/os/#Exit
-  [`log.Fatal*`]: https://golang.org/pkg/log/#Fatal
+  [`os.Exit`]: https://pkg.go.dev/os/#Exit
+  [`log.Fatal*`]: https://pkg.go.dev/log/#Fatal
 
 **仅在`main()`** 中调用其中一个 `os.Exit` 或者 `log.Fatal*`。所有其他函数应将错误返回到信号失败中。
 
@@ -2648,7 +2648,7 @@ import (
 
 另请参阅 [Go 包命名规则] 和 [Go 包样式指南].
 
-[Go 包命名规则]: https://blog.golang.org/package-names
+[Go 包命名规则]: https://go.dev/blog/package-names
 [Go 包样式指南]: https://rakyll.org/style-packages/
 
 ### 函数名
@@ -3080,7 +3080,7 @@ s := "foo"
 
 但是，在某些情况下，`var` 使用关键字时默认值会更清晰。例如，[声明空切片]。
 
-[声明空切片]: https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
+[声明空切片]: https://go.dev/wiki/CodeReviewComments#declaring-empty-slices
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -3451,7 +3451,7 @@ var user User
 </tbody></table>
 
 这将零值结构与那些具有类似于为 [初始化 Maps](#初始化-maps) 创建的，区别于非零值字段的结构区分开来，
-我们倾向于[声明一个空切片](https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices)
+我们倾向于[声明一个空切片](https://go.dev/wiki/CodeReviewComments#declaring-empty-slices)
 
 #### 初始化 Struct 引用
 
@@ -3606,7 +3606,7 @@ go vet -printfuncs=wrapf,statusf
 
 当测试逻辑是重复的时候，通过  [subtests] 使用 table 驱动的方式编写 case 代码看上去会更简洁。
 
-[subtests]: https://blog.golang.org/subtests
+[subtests]: https://go.dev/blog/subtests
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -3879,7 +3879,7 @@ use one vs other -->
 - [staticcheck] 各种静态分析检查
 
   [errcheck]: https://github.com/kisielk/errcheck
-  [goimports]: https://godoc.org/golang.org/x/tools/cmd/goimports
+  [goimports]: https://pkg.go.dev/golang.org/x/tools/cmd/goimports
   [golint]: https://github.com/golang/lint
   [govet]: https://golang.org/cmd/vet/
   [staticcheck]: https://staticcheck.io/
