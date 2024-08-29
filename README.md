@@ -107,6 +107,9 @@ change.md
 # 2022-10-18
 
 - 管理goroutine生命周期的指导.
+
+# 2023-04-13
+- Errors: 只添加一次错误处理指南
 -->
 
 ## [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
@@ -119,7 +122,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2022-10-19 版本地址：[commit:#158](https://github.com/uber-go/guide/commit/4478e672bddf9d4f7ca4a561ab0779e08e469577)
+  - 当前更新版本：2024-08-10 版本地址：[commit:#217](https://github.com/uber-go/guide/commit/a66b53bed4ec57c695992b14c4ccaafd49bd5296)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -150,6 +153,7 @@ change.md
     - [错误类型](#错误类型)
     - [错误包装](#错误包装)
     - [错误命名](#错误命名)
+    - [一次处理错误](#一次处理错误)
   - [处理断言失败](#处理断言失败)
   - [不要使用 panic](#不要使用-panic)
   - [使用 go.uber.org/atomic](#使用-gouberorgatomic)
@@ -182,7 +186,7 @@ change.md
   - [减少嵌套](#减少嵌套)
   - [不必要的 else](#不必要的-else)
   - [顶层变量声明](#顶层变量声明)
-  - [对于未导出的顶层常量和变量，使用_作为前缀](#对于未导出的顶层常量和变量使用_作为前缀)
+  - [对于未导出的顶层常量和变量，使用\_作为前缀](#对于未导出的顶层常量和变量使用_作为前缀)
   - [结构体中的嵌入](#结构体中的嵌入)
   - [本地变量声明](#本地变量声明)
   - [nil 是一个有效的 slice](#nil-是一个有效的-slice)
@@ -218,8 +222,8 @@ change.md
 本文档记录了我们在 Uber 遵循的 Go 代码中的惯用约定。其中许多是 Go 的通用准则，而其他扩展准则依赖于下面外部的指南：
 
 1. [Effective Go](https://golang.org/doc/effective_go.html)
-2. [Go Common Mistakes](https://github.com/golang/go/wiki/CommonMistakes)
-3. [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+2. [Go Common Mistakes](https://go.dev/wiki/CommonMistakes)
+3. [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments)
 
 我们的目标是使代码示例能够准确地用于Go的两个发布版本 [releases](https://go.dev/doc/devel/release).
 
@@ -229,7 +233,7 @@ change.md
 - 运行 `golint` 和 `go vet` 检查错误
 
 您可以在以下 Go 编辑器工具支持页面中找到更为详细的信息：
-<https://github.com/golang/go/wiki/IDEsAndTextEditorPlugins>
+<https://go.dev/wiki/IDEsAndTextEditorPlugins>
 
 ## 指导原则
 
@@ -261,6 +265,29 @@ func (s *S2) f() {}
 // f2.f() 可以修改底层数据，给接口变量 f2 赋值时使用的是对象指针
 var f1 F = S1{}
 var f2 F = &S2{}
+```
+永远不要使用指向interface的指针，这个是没有意义的.在go语言中，接口本身就是引用类型，换句话说，接口类型本身就是一个指针。对于我的需求，其实test的参数只要是myinterface就可以了，只需要在传值的时候，传*mystruct类型（也只能传*mystruct类型）
+```
+type myinterface interface{
+	print()
+}
+func test(value *myinterface){
+	//someting to do ...
+}
+
+type mystruct struct {
+	i int
+}
+//实现接口
+func (this *mystruct) print(){
+	fmt.Println(this.i)
+	this.i=1
+}
+func main(){
+m := &mystruct{0}
+test(m)//错误
+test(*m)//错误
+}
 ```
 
 ### Interface 合理性验证
@@ -754,13 +781,13 @@ const (
 
 因此，在处理时间时始终使用 [`"time"`] 包，因为它有助于以更安全、更准确的方式处理这些不正确的假设。
 
-[`"time"`]: https://golang.org/pkg/time/
+[`"time"`]: https://pkg.go.dev/time/
 
 #### 使用 `time.Time` 表达瞬时时间
 
 在处理时间的瞬间时使用 [`time.Time`]，在比较、添加或减去时间时使用 `time.Time` 中的方法。
 
-[`time.Time`]: https://golang.org/pkg/time/#Time
+[`time.Time`]: https://pkg.go.dev/time/#Time
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -788,7 +815,7 @@ func isActive(now, start, stop time.Time) bool {
 
 在处理时间段时使用 [`time.Duration`] .
 
-[`time.Duration`]: https://golang.org/pkg/time/#Duration
+[`time.Duration`]: https://pkg.go.dev/time/#Duration
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -822,8 +849,8 @@ poll(10*time.Second)
 
 回到第一个例子，在一个时间瞬间加上 24 小时，我们用于添加时间的方法取决于意图。如果我们想要下一个日历日 (当前天的下一天) 的同一个时间点，我们应该使用 [`Time.AddDate`]。但是，如果我们想保证某一时刻比前一时刻晚 24 小时，我们应该使用 [`Time.Add`]。
 
-[`Time.AddDate`]: https://golang.org/pkg/time/#Time.AddDate
-[`Time.Add`]: https://golang.org/pkg/time/#Time.Add
+[`Time.AddDate`]: https://pkg.go.dev/time/#Time.AddDate
+[`Time.Add`]: https://pkg.go.dev/time/#Time.Add
 
 ```go
 newDay := t.AddDate(0 /* years */, 0 /* months */, 1 /* days */)
@@ -839,13 +866,13 @@ maybeNewDay := t.Add(24 * time.Hour)
 - SQL: [`database/sql`] 支持将 `DATETIME` 或 `TIMESTAMP` 列转换为 `time.Time`，如果底层驱动程序支持则返回
 - YAML: [`gopkg.in/yaml.v2`] 支持将 `time.Time` 作为 [RFC 3339] 字符串，并通过 [`time.ParseDuration`] 支持 `time.Duration`。
 
-  [`flag`]: https://golang.org/pkg/flag/
-  [`time.ParseDuration`]: https://golang.org/pkg/time/#ParseDuration
-  [`encoding/json`]: https://golang.org/pkg/encoding/json/
+  [`flag`]: https://pkg.go.dev/flag/
+  [`time.ParseDuration`]: https://pkg.go.dev/time/#ParseDuration
+  [`encoding/json`]: https://pkg.go.dev/encoding/json/
   [RFC 3339]: https://tools.ietf.org/html/rfc3339
-  [`UnmarshalJSON` method]: https://golang.org/pkg/time/#Time.UnmarshalJSON
-  [`database/sql`]: https://golang.org/pkg/database/sql/
-  [`gopkg.in/yaml.v2`]: https://godoc.org/gopkg.in/yaml.v2
+  [`UnmarshalJSON` method]: https://pkg.go.dev/time/#Time.UnmarshalJSON
+  [`database/sql`]: https://pkg.go.dev/database/sql/
+  [`gopkg.in/yaml.v2`]: https://pkg.go.dev/gopkg.in/yaml.v2
 
 当不能在这些交互中使用 `time.Duration` 时，请使用 `int` 或 `float64`，并在字段名称中包含单位。
 
@@ -877,13 +904,13 @@ type Config struct {
 
 当在这些交互中不能使用 `time.Time` 时，除非达成一致，否则使用 `string` 和 [RFC 3339] 中定义的格式时间戳。默认情况下，[`Time.UnmarshalText`] 使用此格式，并可通过 [`time.RFC3339`] 在 `Time.Format` 和 `time.Parse` 中使用。
 
-[`Time.UnmarshalText`]: https://golang.org/pkg/time/#Time.UnmarshalText
-[`time.RFC3339`]: https://golang.org/pkg/time/#RFC3339
+[`Time.UnmarshalText`]: https://pkg.go.dev/time/#Time.UnmarshalText
+[`time.RFC3339`]: https://pkg.go.dev/time/#RFC3339
 
 尽管这在实践中并不成问题，但请记住，`"time"` 包不支持解析闰秒时间戳（[8728]），也不在计算中考虑闰秒（[15190]）。如果您比较两个时间瞬间，则差异将不包括这两个瞬间之间可能发生的闰秒。
 
-[8728]: https://github.com/golang/go/issues/8728
-[15190]: https://github.com/golang/go/issues/15190
+[8728]: https://go.dev/issues/8728
+[15190]: https://go.dev/issues/15190
 
 <!-- TODO: section on String methods for enums -->
 
@@ -902,8 +929,8 @@ type Config struct {
 - 我们是否正在传递由下游函数返回的新错误？
    如果是这样，请参阅[错误包装部分](#错误包装)。
 
-[`errors.Is`]: https://golang.org/pkg/errors/#Is
-[`errors.As`]: https://golang.org/pkg/errors/#As
+[`errors.Is`]: https://pkg.go.dev/errors/#Is
+[`errors.As`]: https://pkg.go.dev/errors/#As
 
 | 错误匹配？| 错误消息 | 指导                           |
 |-----------------|---------------|-------------------------------------|
@@ -912,8 +939,8 @@ type Config struct {
 | Yes             | static        | top-level `var` with [`errors.New`] |
 | Yes             | dynamic       | custom `error` type                 |
 
-[`errors.New`]: https://golang.org/pkg/errors/#New
-[`fmt.Errorf`]: https://golang.org/pkg/fmt/#Errorf
+[`errors.New`]: https://pkg.go.dev/errors/#New
+[`fmt.Errorf`]: https://pkg.go.dev/fmt/#Errorf
 
 例如，
 使用 [`errors.New`] 表示带有静态字符串的错误。
@@ -1076,13 +1103,13 @@ if err != nil {
 
 </td></tr><tr><td>
 
-```
+```plain
 failed to x: failed to y: failed to create new store: the error
 ```
 
 </td><td>
 
-```
+```plain
 x: y: new store: the error
 ```
 
@@ -1094,7 +1121,7 @@ x: y: new store: the error
 
 另见 [不要只检查错误，优雅地处理它们]。
 
-  [`"pkg/errors".Cause`]: https://godoc.org/github.com/pkg/errors#Cause
+  [`"pkg/errors".Cause`]: https://pkg.go.dev/github.com/pkg/errors#Cause
   [不要只检查错误，优雅地处理它们]: https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
 
 #### 错误命名
@@ -1138,6 +1165,102 @@ func (e *resolveError) Error() string {
   return fmt.Sprintf("resolve %q", e.Path)
 }
 ```
+#### 一次处理错误
+
+当调用方从被调用方接收到错误时，它可以根据对错误的了解，以各种不同的方式进行处理。
+
+其中包括但不限于：
+
+- 如果被调用者约定定义了特定的错误，则将错误与`errors.Is`或`errors.As`匹配，并以不同的方式处理分支
+- 如果错误是可恢复的，则记录错误并正常降级
+- 如果该错误表示特定于域的故障条件，则返回定义明确的错误
+- 返回错误，无论是 [wrapped](#错误包装) 还是逐字逐句
+
+无论调用方如何处理错误，它通常都应该只处理每个错误一次。例如，调用方不应该记录错误然后返回，因为*its*调用方也可能处理错误。
+
+例如，考虑以下情况：
+
+<table>
+<thead><tr><th>Description</th><th>Code</th></tr></thead>
+<tbody>
+<tr><td>
+
+**Bad**: 记录错误并将其返回
+
+堆栈中的调用程序可能会对该错误采取类似的操作。这样做会在应用程序日志中造成大量噪音，但收效甚微。
+
+</td><td>
+
+```go
+u, err := getUser(id)
+if err != nil {
+  // BAD: See description
+  log.Printf("Could not get user %q: %v", id, err)
+  return err
+}
+```
+
+</td></tr>
+<tr><td>
+
+**Good**: 将错误换行并返回
+
+
+
+堆栈中更靠上的调用程序将处理该错误。使用`%w`可确保它们可以将错误与`errors.Is`或`errors.As`相匹配 （如果相关）。
+
+</td><td>
+
+```go
+u, err := getUser(id)
+if err != nil {
+  return fmt.Errorf("get user %q: %w", id, err)
+}
+```
+
+</td></tr>
+<tr><td>
+
+**Good**: 记录错误并正常降级
+
+如果操作不是绝对必要的，我们可以通过从中恢复来提供降级但不间断的体验。
+
+</td><td>
+
+```go
+if err := emitMetrics(); err != nil {
+  // Failure to write metrics should not
+  // break the application.
+  log.Printf("Could not emit metrics: %v", err)
+}
+
+```
+
+</td></tr>
+<tr><td>
+
+**Good**: 匹配错误并适当降级
+
+如果被调用者在其约定中定义了一个特定的错误，并且失败是可恢复的，则匹配该错误案例并正常降级。对于所有其他案例，请包装错误并返回。
+
+堆栈中更靠上的调用程序将处理其他错误。
+
+</td><td>
+
+```go
+tz, err := getUserTimeZone(id)
+if err != nil {
+  if errors.Is(err, ErrUserNotFound) {
+    // User doesn't exist. Use UTC.
+    tz = time.UTC
+  } else {
+    return fmt.Errorf("get user %q: %w", id, err)
+  }
+}
+```
+
+</td></tr>
+</tbody></table>
 
 ### 处理断言失败
 
@@ -1259,8 +1382,8 @@ if err != nil {
 
 [go.uber.org/atomic] 通过隐藏基础类型为这些操作增加了类型安全性。此外，它包括一个方便的`atomic.Bool`类型。
 
-[go.uber.org/atomic]: https://godoc.org/go.uber.org/atomic
-[sync/atomic]: https://golang.org/pkg/sync/atomic/
+[go.uber.org/atomic]: https://pkg.go.dev/go.uber.org/atomic
+[sync/atomic]: https://pkg.go.dev/sync/atomic/
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -1713,8 +1836,8 @@ BenchmarkGood-4   100000000    0.21s
 
 Go 程序使用 [`os.Exit`] 或者 [`log.Fatal*`] 立即退出 (使用`panic`不是退出程序的好方法，请 [不要使用 panic](#不要使用-panic)。)
 
-  [`os.Exit`]: https://golang.org/pkg/os/#Exit
-  [`log.Fatal*`]: https://golang.org/pkg/log/#Fatal
+  [`os.Exit`]: https://pkg.go.dev/os/#Exit
+  [`log.Fatal*`]: https://pkg.go.dev/log/#Fatal
 
 **仅在`main()`** 中调用其中一个 `os.Exit` 或者 `log.Fatal*`。所有其他函数应将错误返回到信号失败中。
 
@@ -1835,6 +1958,38 @@ func run() error {
 
 </td></tr>
 </tbody></table>
+
+上面的示例使用`log.Fatal`，但该指南也适用于`os.Exit`或任何调用`os.Exit`的库代码。
+
+```go
+func main() {
+  if err := run(); err != nil {
+    fmt.Fprintln(os.Stderr, err)
+    os.Exit(1)
+  }
+}
+```
+
+您可以根据需要更改`run()`的签名。例如，如果您的程序必须使用特定的失败退出代码退出，`run()`可能会返回退出代码而不是错误。这也允许单元测试直接验证此行为。
+
+```go
+func main() {
+  os.Exit(run(args))
+}
+
+func run() (exitCode int) {
+  // ...
+}
+```
+请注意，这些示例中使用的`run()`函数并不是强制性的。
+`run()`函数的名称、签名和设置具有灵活性。除其他外，您可以：
+
+- 接受未分析的命令行参数 (e.g., `run(os.Args[1:])`)
+- 解析`main()`中的命令行参数并将其传递到`run`
+- 使用自定义错误类型将退出代码传回`main（）`
+- 将业务逻辑置于不同的抽象层 `package main`
+
+本指南只要求在`main()`中有一个位置负责实际的退出流程。
 
 ### 在序列化结构中使用字段标记
 
@@ -2089,13 +2244,13 @@ for i := 0; i < b.N; i++ {
 </td></tr>
 <tr><td>
 
-```
+```plain
 BenchmarkFmtSprint-4    143 ns/op    2 allocs/op
 ```
 
 </td><td>
 
-```
+```plain
 BenchmarkStrconv-4    64.2 ns/op    1 allocs/op
 ```
 
@@ -2131,13 +2286,13 @@ for i := 0; i < b.N; i++ {
 </tr>
 <tr><td>
 
-```
+```plain
 BenchmarkBad-4   50000000   22.2 ns/op
 ```
 
 </td><td>
 
-```
+```plain
 BenchmarkGood-4  500000000   3.25 ns/op
 ```
 
@@ -2159,7 +2314,7 @@ make(map[T1]T2, hint)
 向`make()`提供容量提示会在初始化时尝试调整 map 的大小，这将减少在将元素添加到 map 时为 map 重新分配内存。
 
 
-注意，与 slices 不同。map capacity 提示并不保证完全的抢占式分配，而是用于估计所需的 hashmap bucket 的数量。
+注意，与 slices 不同。map 容量提示并不保证完全的、预先的分配，而是用于估计所需的 hashmap bucket 的数量。
 因此，在将元素添加到 map 时，甚至在指定 map 容量时，仍可能发生分配。
 
 <table>
@@ -2209,7 +2364,7 @@ make([]T, length, capacity)
 ```
 
 与 maps 不同，slice capacity 不是一个提示：编译器将为提供给`make()`的 slice 的容量分配足够的内存，
-这意味着后续的 append()`操作将导致零分配（直到 slice 的长度与容量匹配，在此之后，任何 append 都可能调整大小以容纳其他元素）。
+这意味着后续的`append()`操作将导致零分配（直到 slice 的长度与容量匹配，在此之后，任何 append 都可能调整大小以容纳其他元素）。
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -2493,7 +2648,7 @@ import (
 
 另请参阅 [Go 包命名规则] 和 [Go 包样式指南].
 
-[Go 包命名规则]: https://blog.golang.org/package-names
+[Go 包命名规则]: https://go.dev/blog/package-names
 [Go 包样式指南]: https://rakyll.org/style-packages/
 
 ### 函数名
@@ -2925,7 +3080,7 @@ s := "foo"
 
 但是，在某些情况下，`var` 使用关键字时默认值会更清晰。例如，[声明空切片]。
 
-[声明空切片]: https://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices
+[声明空切片]: https://go.dev/wiki/CodeReviewComments#declaring-empty-slices
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -3296,7 +3451,7 @@ var user User
 </tbody></table>
 
 这将零值结构与那些具有类似于为 [初始化 Maps](#初始化-maps) 创建的，区别于非零值字段的结构区分开来，
-并与我们更喜欢的 [声明空切片] 方式相匹配。
+我们倾向于[声明一个空切片](https://go.dev/wiki/CodeReviewComments#declaring-empty-slices)
 
 #### 初始化 Struct 引用
 
@@ -3438,7 +3593,7 @@ fmt.Printf(msg, 1, 2)
 如果不能使用预定义的名称，请以 f 结束选择的名称：`Wrapf`，而不是`Wrap`。`go vet`可以要求检查特定的 Printf 样式名称，但名称必须以`f`结尾。
 
 ```shell
-$ go vet -printfuncs=wrapf,statusf
+go vet -printfuncs=wrapf,statusf
 ```
 
 另请参阅 [go vet: Printf family check].
@@ -3451,7 +3606,7 @@ $ go vet -printfuncs=wrapf,statusf
 
 当测试逻辑是重复的时候，通过  [subtests] 使用 table 驱动的方式编写 case 代码看上去会更简洁。
 
-[subtests]: https://blog.golang.org/subtests
+[subtests]: https://go.dev/blog/subtests
 
 <table>
 <thead><tr><th>Bad</th><th>Good</th></tr></thead>
@@ -3698,7 +3853,7 @@ func Open(
 }
 ```
 
-注意：还有一种使用闭包实现这个模式的方法，但是我们相信上面的模式为作者提供了更多的灵活性，并且更容易对用户进行调试和测试。特别是，在不可能进行比较的情况下它允许在测试和模拟中对选项进行比较。此外，它还允许选项实现其他接口，包括 `fmt.Stringer`，允许用户读取选项的字符串表示形式。
+注意：还有一种使用闭包实现这个模式的方法，但是我们相信上面的模式为作者提供了更多的灵活性，并且更容易对用户进行调试和测试。特别是，我们的这种方式允许在测试和模拟中比较选项，这在闭包实现中几乎是不可能的。此外，它还允许选项实现其他接口，包括 `fmt.Stringer`，允许用户读取选项的字符串表示形式。
 
 还可以参考下面资料：
 
@@ -3724,7 +3879,7 @@ use one vs other -->
 - [staticcheck] 各种静态分析检查
 
   [errcheck]: https://github.com/kisielk/errcheck
-  [goimports]: https://godoc.org/golang.org/x/tools/cmd/goimports
+  [goimports]: https://pkg.go.dev/golang.org/x/tools/cmd/goimports
   [golint]: https://github.com/golang/lint
   [govet]: https://golang.org/cmd/vet/
   [staticcheck]: https://staticcheck.io/
