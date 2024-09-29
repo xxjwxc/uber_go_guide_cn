@@ -111,7 +111,8 @@ change.md
 # 2023-04-13
 - Errors: 只添加一次错误处理指南
 -->
-
+[![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/uber_go_guide_cn) 
+<a href="https://hellogithub.com/repository/e65f00eece9f4229bb6686655f44314f" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=e65f00eece9f4229bb6686655f44314f&claim_uid=6IkmGoxiuN4LWFn&theme=small" alt="Featured｜HelloGitHub" /></a>
 ## [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
 
 ## [English](https://github.com/uber-go/guide/blob/master/style.md)
