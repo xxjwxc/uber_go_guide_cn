@@ -266,7 +266,7 @@ var f1 F = S1{}
 var f2 F = &S2{}
 ```
 永远不要使用指向 interface 的指针，这个是没有意义的。在 go 语言中，接口本身就是引用类型，换句话说，接口类型本身就是一个指针。对于我的需求，其实 test 的参数只要是 myinterface 就可以了，只需要在传值的时候，传*mystruct 类型（也只能传*mystruct 类型）
-```
+```go
 type myinterface interface{
 	print()
 }
@@ -283,9 +283,9 @@ func (this *mystruct) print(){
 	this.i=1
 }
 func main(){
-m := &mystruct{0}
-test(m)//错误
-test(*m)//错误
+	m := &mystruct{0}
+	test(m)  // 错误
+	test(*m) // 错误
 }
 ```
 
