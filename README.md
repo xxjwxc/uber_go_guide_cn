@@ -54,7 +54,7 @@ row before the </tbody></table> line.
 change.md
 
 # 2019-12-17
-- 函数选项：推荐 “Option” 接口的结构实现
+- 函数选项：推荐“Option”接口的结构实现
 - 而不是用闭包捕获值。
 
 # 2019-11-26
@@ -103,10 +103,10 @@ change.md
 # 2022-03-30
 
 - 添加有关在封送结构中使用字段标记的指导。
-- 
+-
 # 2022-10-18
 
-- 管理goroutine生命周期的指导.
+- 管理 goroutine 生命周期的指导。
 
 # 2023-04-13
 - Errors: 只添加一次错误处理指南
@@ -224,7 +224,7 @@ change.md
 2. [Go Common Mistakes](https://go.dev/wiki/CommonMistakes)
 3. [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments)
 
-我们的目标是使代码示例能够准确地用于Go的两个发布版本 [releases](https://go.dev/doc/devel/release).
+我们的目标是使代码示例能够准确地用于 Go 的两个发布版本 [releases](https://go.dev/doc/devel/release).
 
 所有代码都应该通过`golint`和`go vet`的检查并无错误。我们建议您将编辑器设置为：
 
@@ -265,7 +265,7 @@ func (s *S2) f() {}
 var f1 F = S1{}
 var f2 F = &S2{}
 ```
-永远不要使用指向interface的指针，这个是没有意义的.在go语言中，接口本身就是引用类型，换句话说，接口类型本身就是一个指针。对于我的需求，其实test的参数只要是myinterface就可以了，只需要在传值的时候，传*mystruct类型（也只能传*mystruct类型）
+永远不要使用指向 interface 的指针，这个是没有意义的。在 go 语言中，接口本身就是引用类型，换句话说，接口类型本身就是一个指针。对于我的需求，其实 test 的参数只要是 myinterface 就可以了，只需要在传值的时候，传*mystruct 类型（也只能传*mystruct 类型）
 ```
 type myinterface interface{
 	print()
@@ -528,7 +528,7 @@ func (m *SMap) Get(k string) string {
 </td></tr>
 <tr><td>
 
-`Mutex` 字段， `Lock` 和 `Unlock` 方法是 `SMap` 导出的 API 中不刻意说明的一部分。
+`Mutex` 字段，`Lock` 和 `Unlock` 方法是 `SMap` 导出的 API 中不刻意说明的一部分。
 
  </td><td>
 
@@ -860,7 +860,7 @@ maybeNewDay := t.Add(24 * time.Hour)
 
 尽可能在与外部系统的交互中使用 `time.Duration` 和 `time.Time` 例如 :
 
-- Command-line 标志: [`flag`] 通过 [`time.ParseDuration`] 支持 `time.Duration`
+- Command-line 标志：[`flag`] 通过 [`time.ParseDuration`] 支持 `time.Duration`
 - JSON: [`encoding/json`] 通过其 [`UnmarshalJSON` method] 方法支持将 `time.Time` 编码为 [RFC 3339] 字符串
 - SQL: [`database/sql`] 支持将 `DATETIME` 或 `TIMESTAMP` 列转换为 `time.Time`，如果底层驱动程序支持则返回
 - YAML: [`gopkg.in/yaml.v2`] 支持将 `time.Time` 作为 [RFC 3339] 字符串，并通过 [`time.ParseDuration`] 支持 `time.Duration`。
@@ -1052,7 +1052,7 @@ if err := foo.Open("testfile.txt"); err != nil {
 
 #### 错误包装
 
-如果调用其他方法时出现错误, 通常有三种处理方式可以选择：
+如果调用其他方法时出现错误，通常有三种处理方式可以选择：
 
 - 将原始错误原样返回
 - 使用 `fmt.Errorf` 搭配 `%w` 将错误添加进上下文后返回
@@ -1136,7 +1136,7 @@ var (
   ErrBrokenLink = errors.New("link is broken")
   ErrCouldNotOpen = errors.New("could not open")
 
-  // 这个错误没有被导出，因为我们不想让它成为我们公共 API 的一部分。 我们可能仍然在带有错误的包内使用它。
+  // 这个错误没有被导出，因为我们不想让它成为我们公共 API 的一部分。我们可能仍然在带有错误的包内使用它。
 
   errNotFound = errors.New("not found")
 )
@@ -1155,7 +1155,7 @@ func (e *NotFoundError) Error() string {
   return fmt.Sprintf("file %q not found", e.File)
 }
 
-// 并且这个错误没有被导出，因为我们不想让它成为公共 API 的一部分。 我们仍然可以在带有 errors.As 的包中使用它。
+// 并且这个错误没有被导出，因为我们不想让它成为公共 API 的一部分。我们仍然可以在带有 errors.As 的包中使用它。
 type resolveError struct {
   Path string
 }
@@ -1206,7 +1206,7 @@ if err != nil {
 
 
 
-堆栈中更靠上的调用程序将处理该错误。使用`%w`可确保它们可以将错误与`errors.Is`或`errors.As`相匹配 （如果相关）。
+堆栈中更靠上的调用程序将处理该错误。使用`%w`可确保它们可以将错误与`errors.Is`或`errors.As`相匹配（如果相关）。
 
 </td><td>
 
@@ -1263,7 +1263,7 @@ if err != nil {
 
 ### 处理断言失败
 
-[类型断言] 将会在检测到不正确的类型时，以单一返回值形式返回 panic。 因此，请始终使用“逗号 ok”习语。
+[类型断言] 将会在检测到不正确的类型时，以单一返回值形式返回 panic。因此，请始终使用“逗号 ok”习语。
 
   [类型断言]: https://golang.org/ref/spec#Type_assertions
 
@@ -1293,7 +1293,7 @@ fine. -->
 
 ### 不要使用 panic
 
-在生产环境中运行的代码必须避免出现 panic。panic 是 [级联失败] 的主要根源 。如果发生错误，该函数必须返回错误，并允许调用方决定如何处理它。
+在生产环境中运行的代码必须避免出现 panic。panic 是 [级联失败] 的主要根源。如果发生错误，该函数必须返回错误，并允许调用方决定如何处理它。
 
 [级联失败]: https://en.wikipedia.org/wiki/Cascading_failure
 
@@ -1992,7 +1992,7 @@ func run() (exitCode int) {
 
 ### 在序列化结构中使用字段标记
 
-任何序列化到JSON、YAML、，
+任何序列化到 JSON、YAML、，
 或其他支持基于标记的字段命名的格式应使用相关标记进行注释。
 
 <table>
@@ -2046,7 +2046,7 @@ Goroutines 是轻量级的，但它们不是免费的：
 
 一般来说，每个 goroutine:
 
-- 必须有一个可预测的停止运行时间； 或者
+- 必须有一个可预测的停止运行时间；或者
 - 必须有一种方法可以向 goroutine 发出信号它应该停止
 
 在这两种情况下，都必须有一种方式代码来阻塞并等待 goroutine 完成。
@@ -2123,7 +2123,7 @@ close(stop)  // 指示 goroutine 停止
         // ...
       }()
     }
-    
+
     // To wait for all to finish:
     wg.Wait()
     ```
@@ -2137,12 +2137,12 @@ close(stop)  // 指示 goroutine 停止
       defer close(done)
       // ...
     }()
-    
+
     // To wait for the goroutine to finish:
     <-done
     ```
 
-#### 不要在 `init()` 使用 goroutines 
+#### 不要在 `init()` 使用 goroutines
 
 `init()` 函数不应该产生 goroutines。
 另请参阅 [避免使用 init()](#避免使用-init)。
@@ -2345,7 +2345,7 @@ for _, f := range files {
 </td></tr>
 <tr><td>
 
-`m` 是在没有大小提示的情况下创建的； 在运行时可能会有更多分配。
+`m` 是在没有大小提示的情况下创建的；在运行时可能会有更多分配。
 
 </td><td>
 
@@ -2870,7 +2870,7 @@ var _e error = F()
 
 ### 对于未导出的顶层常量和变量，使用_作为前缀
 
-在未导出的顶级`vars`和`consts`， 前面加上前缀_，以使它们在使用时明确表示它们是全局符号。
+在未导出的顶级`vars`和`consts`，前面加上前缀_，以使它们在使用时明确表示它们是全局符号。
 
 基本依据：顶级变量和常量具有包范围作用域。使用通用名称可能很容易在其他文件中意外使用错误的值。
 
@@ -2913,7 +2913,7 @@ const (
 </td></tr>
 </tbody></table>
 
-**例外**：未导出的错误值可以使用不带下划线的前缀 `err`。 参见[错误命名](#错误命名)。
+**例外**：未导出的错误值可以使用不带下划线的前缀 `err`。参见[错误命名](#错误命名)。
 
 ### 结构体中的嵌入
 
@@ -3482,7 +3482,7 @@ sptr := &T{Name: "bar"}
 
 ### 初始化 Maps
 
-对于空 map 请使用 `make(..)` 初始化， 并且 map 是通过编程方式填充的。
+对于空 map 请使用 `make(..)` 初始化，并且 map 是通过编程方式填充的。
 这使得 map 初始化在表现上不同于声明，并且它还可以方便地在 make 后添加大小提示。
 
 <table>
@@ -3683,7 +3683,7 @@ for _, tt := range tests {
 
 很明显，使用 test table 的方式在代码逻辑扩展的时候，比如新增 test case，都会显得更加的清晰。
 
-我们遵循这样的约定：将结构体切片称为`tests`。 每个测试用例称为`tt`。此外，我们鼓励使用`give`和`want`前缀说明每个测试用例的输入和输出值。
+我们遵循这样的约定：将结构体切片称为`tests`。每个测试用例称为`tt`。此外，我们鼓励使用`give`和`want`前缀说明每个测试用例的输入和输出值。
 
 ```go
 tests := []struct{
@@ -3699,7 +3699,7 @@ for _, tt := range tests {
 }
 ```
 
-并行测试，比如一些专门的循环（例如，生成goroutine或捕获引用作为循环体的一部分的那些循环）
+并行测试，比如一些专门的循环（例如，生成 goroutine 或捕获引用作为循环体的一部分的那些循环）
 必须注意在循环的范围内显式地分配循环变量，以确保它们保持预期的值。
 
 ```go
