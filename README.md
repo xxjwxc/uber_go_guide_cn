@@ -111,7 +111,6 @@ change.md
 # 2023-04-13
 - Errors: 只添加一次错误处理指南
 -->
-
 ## [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
 
 ## [English](https://github.com/uber-go/guide/blob/master/style.md)
@@ -3373,7 +3372,7 @@ k := User{
 </td></tr>
 </tbody></table>
 
-例外：当有 3 个或更少的字段时，测试表中的字段名*may*可以省略。
+例外：当有 3 个或更少的字段时，测试表中的字段名可以省略。
 
 ```go
 tests := []struct{
