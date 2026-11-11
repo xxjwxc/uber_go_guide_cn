@@ -110,6 +110,14 @@ change.md
 
 # 2023-04-13
 - Errors: 只添加一次错误处理指南
+
+# 2026-11-11
+- 同步上游 uber-go/guide 自 9731441（#227）至 1d60a91（#256）的 15 个提交
+- 等待 goroutine 退出：示例改用 Go 1.25 的 `sync.WaitGroup.Go`
+- 并行测试：移除 Go 1.22 起不再需要的 `tt := tt`，补充版本兼容译注
+- Linting：推荐工具由 `golint` 改为 `revive`，补充废弃说明
+- 指定 Map 容量：示例类型改为 `os.DirEntry`，更新扩容说明
+- 修正 atomic / goroutine-init / test-table 等处的代码与文字笔误
 -->
 ## [uber-go/guide](https://github.com/uber-go/guide) 的中文翻译
 
@@ -121,7 +129,7 @@ change.md
 
  ## 版本
 
-  - 当前更新版本：2024-08-10 版本地址：[commit:#227](https://github.com/uber-go/guide/commit/97314412dfcb60c3f4f0372bc311f9ddcdac54a9)
+  - 当前更新版本：2026-04-15 版本地址：[commit:#256 / 1d60a91](https://github.com/uber-go/guide/commit/1d60a91aa5e87d443002e23c21903c49489dbde5)
   - 如果您发现任何更新、问题或改进，请随时 fork 和 PR
   - Please feel free to fork and PR if you find any updates, issues or improvement.
 
@@ -1394,7 +1402,7 @@ type foo struct {
   running int32  // atomic
 }
 
-func (f* foo) start() {
+func (f *foo) start() {
   if atomic.SwapInt32(&f.running, 1) == 1 {
      // already running…
      return
@@ -2111,17 +2119,13 @@ close(stop)  // 指示 goroutine 停止
 必须有一种方案能等待 goroutine 的退出。
 有两种常用的方法可以做到这一点：
 
-- 使用 `sync.WaitGroup`.
-  如果您要等待多个 goroutine，请执行此操作
+- 使用 `sync.WaitGroup` 等待多个 goroutine 完成。
+  如果要等待多个 goroutine，请采用这种方式。
 
     ```go
     var wg sync.WaitGroup
     for i := 0; i < N; i++ {
-      wg.Add(1)
-      go func() {
-        defer wg.Done()
-        // ...
-      }()
+      wg.Go(...)
     }
 
     // To wait for all to finish:
@@ -2141,6 +2145,9 @@ close(stop)  // 指示 goroutine 停止
     // To wait for the goroutine to finish:
     <-done
     ```
+
+> 译注：`sync.WaitGroup.Go` 是 Go 1.25 新增的方法，等价于 `Add(1)` + 启动 goroutine + `Done()`。
+> 若需兼容更早的 Go 版本，仍应使用 `wg.Add(1)` 配合 `go func() { defer wg.Done(); ... }()`。
 
 #### 不要在 `init()` 使用 goroutines
 
@@ -2178,6 +2185,7 @@ func NewWorker(...) *Worker {
     // ...
   }
   go w.doWork()
+  return w
 }
 func (w *Worker) doWork() {
   defer close(w.done)
@@ -2322,9 +2330,9 @@ make(map[T1]T2, hint)
 <tr><td>
 
 ```go
-m := make(map[string]os.FileInfo)
-
 files, _ := os.ReadDir("./files")
+
+m := make(map[string]os.DirEntry)
 for _, f := range files {
     m[f.Name()] = f
 }
@@ -2336,7 +2344,7 @@ for _, f := range files {
 
 files, _ := os.ReadDir("./files")
 
-m := make(map[string]os.FileInfo, len(files))
+m := make(map[string]os.DirEntry, len(files))
 for _, f := range files {
     m[f.Name()] = f
 }
@@ -2345,7 +2353,7 @@ for _, f := range files {
 </td></tr>
 <tr><td>
 
-`m` 是在没有大小提示的情况下创建的；在运行时可能会有更多分配。
+`m` 在创建时没有提供大小提示；map 会动态扩容，并在增长过程中产生多次分配。
 
 </td><td>
 
@@ -3699,8 +3707,8 @@ for _, tt := range tests {
 }
 ```
 
-并行测试，比如一些专门的循环（例如，生成 goroutine 或捕获引用作为循环体的一部分的那些循环）
-必须注意在循环的范围内显式地分配循环变量，以确保它们保持预期的值。
+并行测试，比如一些专门的循环（例如，生成 goroutine 或捕获引用作为循环体的一部分的那些循环），
+必须注意循环变量与迭代之间的绑定关系，以确保它们保持预期的值。
 
 ```go
 tests := []struct{
@@ -3710,7 +3718,6 @@ tests := []struct{
   // ...
 }
 for _, tt := range tests {
-  tt := tt // for t.Parallel
   t.Run(tt.give, func(t *testing.T) {
     t.Parallel()
     // ...
@@ -3718,8 +3725,12 @@ for _, tt := range tests {
 }
 ```
 
-在上面的例子中，由于下面使用了`t.Parallel()`，我们必须声明一个作用域为循环迭代的`tt`变量。
-如果我们不这样做，大多数或所有测试都会收到一个意外的`tt`值，或者一个在运行时发生变化的值。
+在上面的例子中，由于下面使用了 `t.Parallel()`，需要确保每次迭代的 `tt` 互不干扰，
+否则大多数或所有测试都会收到一个意外的 `tt` 值，或者一个在运行时发生变化的值。
+
+> 译注：上游已按 Go 1.22 的循环变量语义移除了示例中的 `tt := tt`，但英文正文仍保留了旧说明。
+> 自 Go 1.22 起，`range` 循环变量在每次迭代中都是独立的，配合 `t.Parallel()` 无需再手动拷贝；
+> 若代码仍需兼容 Go 1.21 及更早版本，则必须保留 `tt := tt`。
 
 ### 功能选项
 
@@ -3873,16 +3884,17 @@ use one vs other -->
 
 - [errcheck] 以确保错误得到处理
 - [goimports] 格式化代码和管理 imports
-- [golint] 指出常见的文体错误
+- [revive] 指出常见的文体错误
 - [govet] 分析代码中的常见错误
 - [staticcheck] 各种静态分析检查
 
   [errcheck]: https://github.com/kisielk/errcheck
   [goimports]: https://pkg.go.dev/golang.org/x/tools/cmd/goimports
-  [golint]: https://github.com/golang/lint
-  [govet]: https://golang.org/cmd/vet/
-  [staticcheck]: https://staticcheck.io/
+  [revive]: https://github.com/mgechev/revive
+  [govet]: https://pkg.go.dev/cmd/vet
+  [staticcheck]: https://staticcheck.dev
 
+  > **注意**：[revive] 是现已废弃的 [golint] 的现代、更快的替代品。
 
 ### Lint Runners
 
@@ -3893,6 +3905,7 @@ golangci-lint 有 [various-linters] 可供使用。建议将上述 linters 作�
 [golangci-lint]: https://github.com/golangci/golangci-lint
 [.golangci.yml]: https://github.com/uber-go/guide/blob/master/.golangci.yml
 [various-linters]: https://golangci-lint.run/usage/linters/
+[golint]: https://github.com/golang/lint
 
 
 ## Stargazers over time
